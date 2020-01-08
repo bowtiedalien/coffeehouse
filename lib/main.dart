@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'Splash/splash.dart';
+import 'test/widget_test.dart';
 
 //application start point
 void main() {
