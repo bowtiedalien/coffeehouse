@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import '../Splash/homepage.dart';
+import 'homepage.dart';
+import 'profilePage.dart';
+import 'ShoppingCart.dart';
 import 'dart:async';
 
-//Splash Screen
-
+//MyApp -- Splash Screen
 class MyApp extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
@@ -15,12 +16,13 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     Future.delayed(
       Duration(seconds: 3),
-      () {
-        Navigator.push(
+          () {
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => HomePage(),
           ),
+
         );
       },
     );
@@ -28,7 +30,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    double ScreenWidth = MediaQuery.of(context)
+    double screenWidth = MediaQuery.of(context)
         .size
         .width; //save screen dimensions in a variable
     return Scaffold(
@@ -36,7 +38,7 @@ class _MyAppState extends State<MyApp> {
       body: Column(
         children: <Widget>[
           Container(
-              width: ScreenWidth - 50,
+              width: screenWidth - 50,
               margin: EdgeInsets.fromLTRB(59, 70, 0, 0),
               child: Text(
                 "Welcome to Coffee House",
@@ -51,6 +53,51 @@ class _MyAppState extends State<MyApp> {
               image: AssetImage('coffee.png'),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+//Homepage - the bottom Nav Bar + it is where the redirection happens
+//it redirects to one of the three pages; MyHomePage, ShoppingCart or ProfilePage
+
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  int _selectedPage = 0;
+  final _pageOptions = [
+    MyHomePage(),
+    ShoppingCart(),
+    ProfilePage(),
+  ];
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Coffee House'),
+      ),
+      body: _pageOptions[_selectedPage],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedPage,
+        onTap: (int index) {
+          setState(() {
+            _selectedPage = index;
+          });
+        },
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            title: Text('home'),
+            icon: Icon(Icons.home),
+          ),
+          BottomNavigationBarItem(
+              title: Text('shopping basket'),
+              icon: Icon(Icons.shopping_basket)),
+          BottomNavigationBarItem(
+              title: Text('profile'), icon: Icon(Icons.person))
         ],
       ),
     );

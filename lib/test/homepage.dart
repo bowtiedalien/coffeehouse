@@ -1,121 +1,12 @@
+import 'package:challenge_1/resources/models.dart';
 import 'package:flutter/material.dart';
-import 'package:challenge_1/test/ShoppingCart.dart';
-import 'package:challenge_1/test/profilePage.dart';
+import 'package:challenge_1/resources/data.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-//int _selectedPage;
-//final _pageOptions = [
-//  MyHomePage(),
-//  ShoppingCart(),
-//  ProfilePage(),
-//];
 
-class HomePage extends StatefulWidget {
-  @override
-  _HomePageState createState() => _HomePageState();
-}
+final db = Firestore.instance;
 
-class _HomePageState extends State<HomePage> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Coffee House'),
-      ),
-      body: MyHomePage(),
-//      _pageOptions[_selectedPage],
-    );
-  }
-}
-
-//declare all variables and functions here-------------------
-List<DropdownMenuItem<String>> cupSizes =
-    []; //array that stores available cup sizes
-List<DropdownMenuItem<int>> flavours = [];
-String selected;
-int flavSelected;
-
-const bgColor = const Color(0xFFAC5C0A);
-
-void getCupSizes() {
-  cupSizes = [];
-  cupSizes.add(DropdownMenuItem(
-    child: Text('Huge'),
-    value: 'h',
-  ));
-  cupSizes.add(DropdownMenuItem(
-    child: Text('normal'),
-    value: 'n',
-  ));
-  cupSizes.add(DropdownMenuItem(
-    child: Text('small'),
-    value: 's',
-  ));
-}
-
-void getFlavours() {
-  flavours = []; //this is crucial - without it, application breaks.
-  //error: There should be exactly one item with [DropdownButton]'s value: 2. Either zero or 2 or more [DropdownMenuItem]s were detected with the same value
-  flavours.add(DropdownMenuItem(
-    child: Text('chocolate'),
-    value: 1,
-  ));
-  flavours.add(DropdownMenuItem(
-    child: Text('vanilla'),
-    value: 2,
-  ));
-}
-
-List<String> coffeeNames = [
-  'Affogato',
-  'Cafe Late',
-  'Caffe Americano',
-  'Cappuccino',
-  'Espresso',
-  'Flat White',
-  'Irish Coffee',
-  'Long Black',
-  'Macchiato',
-  'Vienna'
-];
-List<String> coffeeImages = [
-  'affogato.png',
-  'cafe_late.png',
-  'caffe_americano.png',
-  'cappucino.png',
-  'espresso.png',
-  'flat_white.png',
-  'irish_coffee.png',
-  'long_black.png',
-  'macchiato.png',
-  'vienna.png'
-];
-List<int> coffeePrices = [10, 3, 5, 5, 5, 2, 10, 2, 5, 10];
-List<String> coffeeDesc = [
-  'coffee with ice cream',
-  'coffee with milk and drawing on top',
-  'dark coffee',
-  'coffee with cream and drawing on top',
-  'coffee with lots of cream and sugar',
-  'coffee with little milk and drawing on top',
-  'fancy coffee with nuts and milk',
-  'black heavy coffee',
-  'coffee with layers of stuff',
-  'coffee with ice cream and nuts'
-];
-List<String> coffeeIng = [
-  'coffee, ice cream',
-  'coffee, milk',
-  'coffee',
-  'coffee, cream',
-  'coffee, cream, sugar',
-  'coffee, milk',
-  'coffee, nuts, milk',
-  'turkish coffee',
-  'coffee, milk, caramel',
-  'coffee, ice cream, nuts'
-];
-
-//-----------------------------------------
+//MyHomePage is the main screen in the app - shows coffee options
 class MyHomePage extends StatefulWidget {
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -136,10 +27,11 @@ class _MyHomePageState extends State<MyHomePage> {
               return Container(
                 margin: EdgeInsets.only(top: 0, bottom: 5),
                 child: ExpansionTile(
-                  title: Text(
-                      i <= (coffeeNames.length) ? coffeeNames[i = i + 1] : null),
+                  title: Text(i <= (coffeeNames.length)
+                      ? coffeeNames[i = i + 1]
+                      : null),
                   leading: Container(
-                    margin: EdgeInsets.only(top:10),
+                    margin: EdgeInsets.only(top: 10),
                     width: 80,
                     height: 120,
                     child: FittedBox(
@@ -153,7 +45,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   children: <Widget>[
                     ListTile(
                       title: Text(coffeeNames[i]),
-                      trailing: Text('\$' + coffeePrices[i].toString()),
+                      trailing: Text(
+                        '\$' + coffeePrices[i].toString(),
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
                     Column(
                       mainAxisAlignment: MainAxisAlignment.start,
@@ -174,7 +69,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                 Container(
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(20.0),
-                                    border: Border.all(color: Colors.blueGrey),
+                                    border:
+                                        Border.all(color: Colors.brown[200]),
                                     color: Colors.white,
                                     boxShadow: [
                                       BoxShadow(
@@ -207,7 +103,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                 Container(
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(20.0),
-                                    border: Border.all(color: Colors.blueGrey),
+                                    border:
+                                        Border.all(color: Colors.brown[200]),
                                     color: Colors.white,
                                     boxShadow: [
                                       BoxShadow(
@@ -225,13 +122,13 @@ class _MyHomePageState extends State<MyHomePage> {
                                   height: 35,
                                   child: DropdownButtonHideUnderline(
                                     child: DropdownButton<int>(
-                                      value: flavSelected,
+                                      value: flavourSelected,
                                       items: flavours,
                                       hint: Text('Add to flavours'),
                                       onChanged: (int value2) {
                                         setState(() {
                                           //calling this to update the state when an option is chosen
-                                          flavSelected = value2;
+                                          flavourSelected = value2;
                                         });
                                       },
                                     ),
@@ -241,7 +138,31 @@ class _MyHomePageState extends State<MyHomePage> {
                             ),
                             RaisedButton(
                                 onPressed: () {
+
                                   //update ShoppingCart list with the item and its specifications
+//                                  print(index); //debugging
+//                                  for(int i=0;i<coffeeNames.length; i++)
+//                                    {
+//                                      print('shoppingBasket[i] => ${shoppingBasket[i]}');
+//                                      if(shoppingBasket[i].isEmpty) {
+//                                        print('flavourSelected is: ' +
+//                                            flavourSelected.toString());
+//                                        shoppingBasket[i].add(
+//                                            coffeeNames[index]);
+//                                        shoppingBasket[i].add(flavourSelected
+//                                            .toString()); //here, each number has a flavour equivalent,
+//                                        // we can keep it in a reference list or something.
+//                                        shoppingBasket[i].add(selected);
+//                                      }
+//                                    }
+//
+//                                  for(int i=0; i<shoppingBasket.length;i++)
+//                                    {
+//                                      print(shoppingBasket[i]);
+//                                    }
+                                  //note: use firebase with this., orders should be a collection.
+                                  //Inside Orders,
+                                  //there is 'OrderId', 'Coffee Name', 'Flavours', 'Cup Size' as documents
                                 },
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(18),
@@ -260,26 +181,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               );
             }),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-//        currentIndex: _selectedPage,
-//        onTap: (int index) {
-//          print(index);
-//          setState(() {
-//            _selectedPage = index;
-//          });
-//        },
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            title: Text('home'),
-            icon: Icon(Icons.home),
-          ),
-          BottomNavigationBarItem(
-              title: Text('shopping basket'),
-              icon: Icon(Icons.shopping_basket)),
-          BottomNavigationBarItem(
-              title: Text('profile'), icon: Icon(Icons.person))
-        ],
       ),
     );
   }

@@ -1,5 +1,7 @@
+import 'package:challenge_1/resources/data.dart';
+import 'package:challenge_1/resources/models.dart';
 import 'package:flutter/material.dart';
-import 'package:challenge_1/Splash/homepage.dart';
+import 'package:flutter/rendering.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -9,25 +11,81 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Text('Hello from Profile Page'),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 2,
-        onTap: (int index) {
-          setState(() {
-            HomePage();
-          });
-        },
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            title: Text('home'),
-            icon: Icon(Icons.home),
+    double screenWidth = MediaQuery.of(context)
+        .size
+        .width; //save screen dimensions in a variable
+    double screenHeight = MediaQuery.of(context).size.height;
+    double bottomMargin = screenHeight/11; //stupid error-prone value of a margin - how can I calculate this better?
+    return SingleChildScrollView(
+      child: Column(
+        children: <Widget>[
+          Container(
+              color: Colors.white,
+//            margin: EdgeInsets.only(bottom: bottomMargin),
+              padding: EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Text(
+                    'You have to sign up to order!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+                  ),
+                  TextField(
+                      decoration: InputDecoration(
+                          labelText: "Email", hintText: "youremail@example.com")),
+                  SizedBox(
+                    height: 15,
+                  ),
+                  TextField(
+                    decoration: InputDecoration(
+                      labelText: "password",
+                    ),
+                  ),
+                  SizedBox(
+                    height: 15,
+                  ),
+                  TextField(
+                    decoration: InputDecoration(
+                      labelText: "password again",
+                    ),
+                  ),
+                  SizedBox(
+                    height: 40,
+                  ),
+                  SizedBox(
+                    width: screenWidth - 20,
+                    height: 40,
+                    child: RaisedButton(
+                      child: Text(
+                        'SIGN UP',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      color: bgColor,
+                      onPressed: () {},
+                    ),
+                  ),
+                  SizedBox(
+                    height: 25,
+                  ),
+                  Text('-OR-'),
+                ],
+              ),
           ),
-          BottomNavigationBarItem(
-              title: Text('shopping basket'),
-              icon: Icon(Icons.shopping_basket)),
-          BottomNavigationBarItem(
-              title: Text('profile'), icon: Icon(Icons.person))
+          Container(
+            child: SizedBox(
+              width: screenWidth - 40,
+              height: 40,
+              child: RaisedButton(
+                child: Text(
+                  'SIGN IN',
+                  style: TextStyle(color: Colors.white),
+                ),
+                color: bgColor,
+                onPressed: () {},
+              ),
+            ),
+          ),
         ],
       ),
     );
