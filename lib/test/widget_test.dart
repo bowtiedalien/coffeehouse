@@ -17,13 +17,12 @@ class _MyAppState extends State<MyApp> {
     Future.delayed(
       Duration(seconds: 3),
           () {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HomePage(),
-          ),
-
-        );
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HomePage(),
+              ),
+            );
       },
     );
   }
@@ -33,6 +32,9 @@ class _MyAppState extends State<MyApp> {
     double screenWidth = MediaQuery.of(context)
         .size
         .width; //save screen dimensions in a variable
+    double screenHeight = MediaQuery.of(context)
+        .size
+        .height;
     return Scaffold(
       backgroundColor: Colors.brown[300],
       body: Column(
@@ -48,10 +50,8 @@ class _MyAppState extends State<MyApp> {
                     color: Colors.white),
               )),
           Container(
-            margin: EdgeInsets.fromLTRB(0, 130, 0, 0),
-            child: Image(
-              image: AssetImage('coffee.png'),
-            ),
+            margin: EdgeInsets.only(top: screenHeight/7.2),
+            child: Image.asset('coffee.png', fit: BoxFit.scaleDown,),
           ),
         ],
       ),
