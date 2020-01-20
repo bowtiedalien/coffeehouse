@@ -1,6 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:challenge_1/resources/data.dart';
 import 'package:challenge_1/resources/models.dart';
+import 'SignIn.dart';
+
+bool hasAccount = false;
+
+class SignInSignUp extends StatefulWidget {
+  @override
+  _SignInSignUpState createState() => _SignInSignUpState();
+}
+
+class _SignInSignUpState extends State<SignInSignUp> {
+  @override
+  Widget build(BuildContext context) {
+    if(!hasAccount)
+      return SignUp();
+    else if(hasAccount)
+      return SignIn();
+  }
+}
 
 class SignUp extends StatefulWidget {
   @override
@@ -81,7 +98,10 @@ class _SignUpState extends State<SignUp> {
                   style: TextStyle(color: Colors.white),
                 ),
                 color: bgColor,
-                onPressed: () {},
+                onPressed: () {
+                  hasAccount = true;
+                  return; //check if this works: this should go back to parent widget and test the if condition, then redirect to SignUp
+                },
               ),
             ),
           ),

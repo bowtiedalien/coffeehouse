@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 //custom brown color
-const bgColor = const Color(0xFFAC5C0A);
+const bgColor = const Color(0xFF442C0C);
+//or is this better: #7C4C2C ?
 
 BoxDecoration dropDownButtonDecoration = BoxDecoration(
   borderRadius: BorderRadius.circular(20.0),
@@ -18,6 +19,7 @@ BoxDecoration dropDownButtonDecoration = BoxDecoration(
     )
   ],
 );
+
 //any button in the app except the SignIn and SignUp
 Widget coffeeButton(String title, onclick()) {
   return RaisedButton(

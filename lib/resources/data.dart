@@ -21,22 +21,21 @@ List<List<String>> shoppingBasket = new List.generate(n, (i) => []);
 List<DropdownMenuItem<String>> cupSizes =
     []; //array that stores available cup sizes
 List<DropdownMenuItem<int>> flavours = [];
-String selected;
 int flavourSelected;
 
 void getCupSizes() {
   cupSizes = [];
   cupSizes.add(DropdownMenuItem(
     child: Text('Huge'),
-    value: 'h',
+    value: 'huge',
   ));
   cupSizes.add(DropdownMenuItem(
     child: Text('normal'),
-    value: 'n',
+    value: 'normal',
   ));
   cupSizes.add(DropdownMenuItem(
     child: Text('small'),
-    value: 's',
+    value: 'small',
   ));
 }
 
@@ -126,6 +125,29 @@ Widget getData() {
       });
 }
 
+var orders = List<List<String>>.generate(5,(i) => List<String>.generate(5, (j) => '')); //Critical Note: 5 is an arbitrary size
+
+Future getOrderList() async{
+  //get order list from firebase
+  //sets the value of coffeeName, coffeePrice, coffeeFlavour, coffeeSize
+  //displays them to user in orderFinalised()
+
+  DocumentReference documentReference =
+  Firestore.instance.collection('order').document('nYgTyxjkpQAOKjULyK2m');
+  documentReference.get().then((datasnapshot) {
+    if (datasnapshot.exists) {
+      print(datasnapshot.data['order list']);
+        print(datasnapshot.data['order list'][0]);
+        orders[0][0] = datasnapshot.data['order list'][0].toString();
+//        print('orders:' + orders[0][0]); for debugging
+    }
+    else {
+      print('loading');
+    }
+  });
+}
+
+//this is for getting info displayed in user profile
 Future getDocs() async {
   final QuerySnapshot result =
       await Firestore.instance.collection('users').getDocuments();

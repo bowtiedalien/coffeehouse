@@ -1,3 +1,4 @@
+import 'package:challenge_1/resources/models.dart';
 import 'package:flutter/material.dart';
 import 'homepage.dart';
 import 'profilePage.dart';
@@ -36,7 +37,7 @@ class _MyAppState extends State<MyApp> {
         .size
         .height;
     return Scaffold(
-      backgroundColor: Colors.brown[300],
+      backgroundColor: bgColor,
       body: Column(
         children: <Widget>[
           Container(
@@ -48,7 +49,7 @@ class _MyAppState extends State<MyApp> {
                     fontWeight: FontWeight.bold,
                     fontSize: 40,
                     color: Colors.white),
-              )),
+              ),),
           Container(
             margin: EdgeInsets.only(top: screenHeight/7.2),
             child: Image.asset('coffee.png', fit: BoxFit.scaleDown,),

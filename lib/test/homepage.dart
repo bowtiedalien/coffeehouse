@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:challenge_1/resources/data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-
 final db = Firestore.instance;
+
+String cupSizeSelected;
 
 //MyHomePage is the main screen in the app - shows coffee options
 class MyHomePage extends StatefulWidget {
@@ -38,7 +39,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       fit: BoxFit.contain,
                       child: Image(
                         image: AssetImage(
-                            i <= (coffeeNames.length) ? coffeeImages[i] : null),
+                          i <= (coffeeNames.length) ? coffeeImages[i] : null,
+                        ),
                       ),
                     ),
                   ),
@@ -88,12 +90,12 @@ class _MyHomePageState extends State<MyHomePage> {
                                   height: 35,
                                   child: DropdownButtonHideUnderline(
                                     child: DropdownButton<String>(
-                                      value: selected,
+                                      value: cupSizeSelected,
                                       items: cupSizes,
                                       hint: Text('Cup Size'),
                                       onChanged: (String value1) {
                                         setState(() {
-                                          selected = value1;
+                                          cupSizeSelected = value1;
                                           //calling this to update the state when an option is chosen
                                         });
                                       },
@@ -138,31 +140,15 @@ class _MyHomePageState extends State<MyHomePage> {
                             ),
                             RaisedButton(
                                 onPressed: () {
-
-                                  //update ShoppingCart list with the item and its specifications
-//                                  print(index); //debugging
-//                                  for(int i=0;i<coffeeNames.length; i++)
-//                                    {
-//                                      print('shoppingBasket[i] => ${shoppingBasket[i]}');
-//                                      if(shoppingBasket[i].isEmpty) {
-//                                        print('flavourSelected is: ' +
-//                                            flavourSelected.toString());
-//                                        shoppingBasket[i].add(
-//                                            coffeeNames[index]);
-//                                        shoppingBasket[i].add(flavourSelected
-//                                            .toString()); //here, each number has a flavour equivalent,
-//                                        // we can keep it in a reference list or something.
-//                                        shoppingBasket[i].add(selected);
-//                                      }
-//                                    }
-//
-//                                  for(int i=0; i<shoppingBasket.length;i++)
-//                                    {
-//                                      print(shoppingBasket[i]);
-//                                    }
                                   //note: use firebase with this., orders should be a collection.
                                   //Inside Orders,
                                   //there is 'OrderId', 'Coffee Name', 'Flavours', 'Cup Size' as documents
+                                  Firestore.instance
+                                      .collection('order')
+                                      .document('nYgTyxjkpQAOKjULyK2m')
+                                      .updateData({
+                                    'order list': [coffeeNames[index], cupSizeSelected, flavourSelected],
+                                  });
                                 },
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(18),
