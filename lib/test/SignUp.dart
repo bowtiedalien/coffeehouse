@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:challenge_1/resources/models.dart';
 import 'SignIn.dart';
 
-bool hasAccount = false;
+bool hasAccount = true;
 
 class SignInSignUp extends StatefulWidget {
   @override
@@ -10,8 +10,14 @@ class SignInSignUp extends StatefulWidget {
 }
 
 class _SignInSignUpState extends State<SignInSignUp> {
+  refresh() {
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
+    SignUp(notifyParent: refresh());
+
     if(!hasAccount)
       return SignUp();
     else if(hasAccount)
@@ -20,6 +26,9 @@ class _SignInSignUpState extends State<SignInSignUp> {
 }
 
 class SignUp extends StatefulWidget {
+  final Function() notifyParent;
+  SignUp({Key key, @required this.notifyParent}) : super(key: key);
+
   @override
   _SignUpState createState() => _SignUpState();
 }
@@ -62,6 +71,7 @@ class _SignUpState extends State<SignUp> {
                   height: 15,
                 ),
                 TextField(
+                  obscureText: true,
                   decoration: InputDecoration(
                     labelText: "password again",
                   ),
@@ -99,8 +109,10 @@ class _SignUpState extends State<SignUp> {
                 ),
                 color: bgColor,
                 onPressed: () {
-                  hasAccount = true;
-                  return; //check if this works: this should go back to parent widget and test the if condition, then redirect to SignUp
+                  setState(() {
+                    hasAccount = true;
+                    widget.notifyParent();
+                  });
                 },
               ),
             ),

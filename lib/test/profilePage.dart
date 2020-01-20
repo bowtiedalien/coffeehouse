@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter/rendering.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'SignUp.dart';
+import 'SignIn.dart';
 
 bool editable =
     true; //this decides weather info appears as readonly or editable text fields
@@ -30,7 +31,7 @@ class _ProfilePageState extends State<ProfilePage> {
       return MyProfilePage(userEmail, userName, userGender, userPhone,
           userBirthdate, userAddress, userImage, refresh);
     else
-      return SignUp();
+      return SignIn(); //can return SignUp instead. Which is more instinctive?
   }
 }
 
