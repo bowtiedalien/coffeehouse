@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/rendering.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'SignUp.dart';
+//import 'SignUp.dart';
 import 'SignIn.dart';
 
 bool editable =
@@ -31,11 +31,9 @@ class _ProfilePageState extends State<ProfilePage> {
       return MyProfilePage(userEmail, userName, userGender, userPhone,
           userBirthdate, userAddress, userImage, refresh);
     else
-      return SignIn(); //can return SignUp instead. Which is more instinctive?
+      return SignIn(notifyParent: refresh); //can return SignUp instead. Which is more instinctive?
   }
 }
-
-//--------------
 
 class MyProfilePage extends StatefulWidget {
   String _userEmail;
@@ -78,10 +76,20 @@ class _MyProfilePageState extends State<MyProfilePage> {
     print('printing out the data');
   }
 
+  Widget displayName() {
+    if (widget.name == null)
+      return displayName();
+    else
+      return Text( //in here, an out-of-range error is thrown when name is not ready yet
+        'Hello, ' +
+            '${widget.name.toString().substring(0, widget.name.toString().indexOf(' '))}' +
+            '!',
+        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+      );
+  }
+
   @override
   Widget build(BuildContext context) {
-    //double screenHeight = MediaQuery.of(context).size.height;
-    //double screenWidth = MediaQuery.of(context).size.width;
     return ListView(
       children: <Widget>[
         Column(
@@ -189,10 +197,10 @@ class _MyProfilePageState extends State<MyProfilePage> {
           child: OutlineButton(
             child: Text('Save'),
             onPressed: () {
-              //take the info that was put in the name, gender, phone, birthdate, and address textfields and send them as
-              //arguments to the next page
-              //The Next Page: displays the information entered as read-only and has containers instead of textfields
+              //1. refresh page to be read-only
               editable = false;
+
+              //2. send info to firestore
               setState(() {
                 if (_nameController.text == "" || _nameController.text == null)
                   _nameController.text = widget.name;
@@ -222,16 +230,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                 else {
                   widget.birthdate = _dobController.text;
                 }
-
                 updateProfileInfo(); //send all information to firebase
-//                DocumentReference document; //?
-//                Firestore.instance.runTransaction((transaction) async{
-//                  DocumentSnapshot snapshot = await transaction.get(document.reference);
-//                  await transaction.update(snapshot.reference, {
-//                    'users': snapshot['users']
-//                  });
-//                });
-                //refresh the profile page to become uneditable
               });
             },
           ),
@@ -240,14 +239,14 @@ class _MyProfilePageState extends State<MyProfilePage> {
           width: 100,
           color: Colors.red,
           child: OutlineButton(
-            child: Text('Sign Out'),
+            child: Text(
+              'Sign Out',
+              style: TextStyle(color: Colors.white),
+            ),
             onPressed: () {
-              //take the info that was put in the name, gender, phone, birthdate, and address textfields and send them as
-              //arguments to the next page
-              //The Next Page: displays the information entered as read-only and has containers instead of textfields
               editable = false;
               setState(() {
-                //go to SignUp page somehow
+                //go to SignIn page - works
                 isSignedIn = false;
                 setState(() {
                   widget.notifyParent();
@@ -316,8 +315,6 @@ Widget userInfoBoxEditable(String label, var cont, String info, int boxHeight) {
             hintText: info,
             border: InputBorder.none,
           ),
-//          hint text: info,
-//          style: TextStyle(color: Colors.grey),
         ),
       ),
     ],
@@ -326,8 +323,6 @@ Widget userInfoBoxEditable(String label, var cont, String info, int boxHeight) {
 
 //shows containers with user info
 Widget userInfoBox(String label, String info, var cont, int boxHeight) {
-  //get data from firebase and store in controller
-  //print('cont: ' + cont);
   return Column(
     children: <Widget>[
       //box label
@@ -358,11 +353,8 @@ Widget userInfoBox(String label, String info, var cont, int boxHeight) {
         height: boxHeight.toDouble(),
         width: 310,
         child: Container(
-          child: Text((cont.text == null || cont.text == "")
-              ? info
-              : cont
-                  .text), //I need to display the value of cont.text with the latest edited user info but if the field was not edited, it
-          //should display the hint value of the textfield
+          child:
+              Text((cont.text == null || cont.text == "") ? info : cont.text),
         ),
       ),
     ],

@@ -1,8 +1,18 @@
+import 'package:challenge_1/resources/data.dart';
 import 'package:challenge_1/test/SignUp.dart';
+import 'package:challenge_1/test/profilePage.dart';
 import 'package:flutter/material.dart';
 import 'package:challenge_1/resources/models.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+var emailController = new TextEditingController(); 
+var passwordController = new TextEditingController();
 
 class SignIn extends StatefulWidget {
+  final Function() notifyParent;
+
+  SignIn({Key key, @required this.notifyParent}) : super(key: key);
+
   @override
   _SignInState createState() => _SignInState();
 }
@@ -19,6 +29,7 @@ class _SignInState extends State<SignIn> {
         child: Column(
           children: <Widget>[
             TextField(
+              controller: emailController,
                 decoration: InputDecoration(
                     labelText: "Email", hintText: "youremail@example.com")),
             SizedBox(
@@ -26,6 +37,7 @@ class _SignInState extends State<SignIn> {
             ),
             TextField(
               obscureText: true,
+              controller: passwordController,
               decoration: InputDecoration(
                 labelText: "password",
               ),
@@ -43,9 +55,31 @@ class _SignInState extends State<SignIn> {
                 ),
                 color: bgColor,
                 onPressed: () {
-                  //check data from firebase
-                  //if user exists, sign in
-                  //otherwise, display "This email does not exist in our database"
+                  Firestore.instance.collection('users').document('P86syncJAcKjY9PKq60l').get().then((snapshot){
+                    if (snapshot.exists) {
+                      if(snapshot.data['email'] == emailController.text && snapshot.data['password'] == passwordController.text)
+                        {
+                          print('sign in successful');
+                          isSignedIn = true;
+                          setState(() {
+
+                          });
+                          widget.notifyParent();
+                        }
+                      else
+                        {
+                          showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text(
+                                    'Email or password not correct!',
+                                  ),
+                                );
+                              });
+                        }
+                    }
+                  });
                 },
               ),
             ),
