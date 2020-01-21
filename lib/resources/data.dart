@@ -105,26 +105,6 @@ List<String> coffeeIng = [
   'coffee, ice cream, nuts'
 ];
 
-Widget getData() {
-  var test = {
-    'name': 'sara'
-  }; //what a map is, 'name' is the key, 'sara' is the value. Hence in a map, keys are linked to values.
-  return FutureBuilder(
-      future: Firestore.instance.collection('users').document(userDocID).get(),
-      builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-        if (snapshot.hasData) {
-          final snapshotData = snapshot.data;
-          Map userDocument = snapshotData.data;
-          print(userDocument);
-          return Text(
-            "Hello " + userDocument.values.first,
-            style: TextStyle(color: Colors.blue, fontSize: 40),
-          );
-        }
-        return const Text("Loading...");
-      });
-}
-
 var orders = List<List<String>>.generate(
   5,
   (i) => List<String>.generate(5, (j) => ''),

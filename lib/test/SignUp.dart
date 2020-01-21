@@ -87,13 +87,6 @@ class _SignUpState extends State<SignUp> {
                     ),
                     color: bgColor,
                     onPressed: () {
-                      Firestore.instance
-                          .collection('users')
-                          .document()
-                          .setData({
-                        'email': emailController.text,
-                        'password': passwordController.text
-                      });
                       if (emailController.text == null ||
                           emailController.text == "" ||
                           passwordController.text == null ||
@@ -107,8 +100,16 @@ class _SignUpState extends State<SignUp> {
                                 ),
                               );
                             });
-                      } else
+                      } else {
+                        Firestore.instance
+                            .collection('users')
+                            .document()
+                            .setData({
+                          'email': emailController.text,
+                          'password': passwordController.text
+                        });
                         mymodel.showProfile();
+                      }
                     },
                   ),
                 ),

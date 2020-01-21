@@ -41,9 +41,9 @@ class MyProfilePage extends StatefulWidget {
 
 class _MyProfilePageState extends State<MyProfilePage> {
   Position _currentPosition;
-
   bool loading = false;
 
+  //when profile page info is updated, send new data to firebase
   Widget updateProfileInfo() {
     //todo: update the user info according to email information and do not pass static document ID like this
     Firestore.instance.collection('users').document(userDocID).updateData({
@@ -61,6 +61,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
     print('printing out the data');
   }
 
+  //display "Hello, User!" at the top of screen
   Widget displayName() {
     if (userName == null)
       return displayName();
@@ -74,13 +75,13 @@ class _MyProfilePageState extends State<MyProfilePage> {
       );
   }
 
-  Future getDocs() async {
+  //get user information from Firebase
+  Future getUserInfo() async {
     setState(() {
       loading = true;
     });
     final result =
         await Firestore.instance.collection('users').document(userDocID).get();
-//  List<DocumentSnapshot> documents = result.documents;
     if (result.exists) {
       //wait until you have the data
       if (result.data['FirstName'] != null) {
@@ -106,12 +107,29 @@ class _MyProfilePageState extends State<MyProfilePage> {
       });
     } else
       print('retrieving data');
-    //print(data.data);
+  }
+
+  //retrieve longitude and latitude of user's location
+  _getCurrentLocation() {
+    final Geolocator geolocator = Geolocator()..forceAndroidLocationManager;
+
+    geolocator
+        .getCurrentPosition(desiredAccuracy: LocationAccuracy.best)
+        .then((Position position) {
+      print(position);
+      setState(() {
+        _currentPosition = position;
+        print(position);
+      });
+    }).catchError((e) {
+      print(e);
+    });
+    print(_currentPosition);
   }
 
   @override
   void initState() {
-    getDocs();
+    getUserInfo();
     super.initState();
   }
 
@@ -179,26 +197,17 @@ class _MyProfilePageState extends State<MyProfilePage> {
 //                  ),
 //                ),
                       //),
-                      //this is not doing what it's supposed to do
-//                    Positioned(
-//                      top: screenHeight / 11,
-//                      left: screenWidth / 6,
-//                      child: FloatingActionButton(
-//                        onPressed: () {},
-//                        child: Icon(Icons.camera_alt),
-//                      ),
-//                    ),
                     ],
                   ),
                   editable
                       ? userInfoBoxEditable(
-                          'Name', _nameController, '${userName}', 40)
-                      : userInfoBox('Name', '${userName}', _nameController, 40),
+                          'Name', _nameController, userName, 40)
+                      : userInfoBox('Name', userName, _nameController, 40),
                   editable
                       ? userInfoBoxEditable(
-                          'Address', _addressController, '${userAddress}', 80)
+                          'Address', _addressController, userAddress, 80)
                       : userInfoBox(
-                          'Address', '${userAddress}', _addressController, 80),
+                          'Address', userAddress, _addressController, 80),
                   IconButton(
                     icon: Icon(Icons.location_on),
                     onPressed: () {
@@ -210,18 +219,18 @@ class _MyProfilePageState extends State<MyProfilePage> {
                       : 'location undefined'),
                   editable
                       ? userInfoBoxEditable(
-                          'Gender', _genderController, '${userGender}', 40)
+                          'Gender', _genderController, userGender, 40)
                       : userInfoBox(
-                          'Gender', '${userGender}', _genderController, 40),
+                          'Gender', userGender, _genderController, 40),
                   editable
                       ? userInfoBoxEditable(
-                          'Phone Number', _phoneController, '${userPhone}', 40)
+                          'Phone Number', _phoneController, userPhone, 40)
                       : userInfoBox(
-                          'Phone Number', '${userPhone}', _phoneController, 40),
+                          'Phone Number', userPhone, _phoneController, 40),
                   editable
                       ? userInfoBoxEditable('Date of Birth', _dobController,
-                          '${userBirthdate}', 40)
-                      : userInfoBox('Date of Birth', '${userBirthdate}',
+                          userBirthdate, 40)
+                      : userInfoBox('Date of Birth', userBirthdate,
                           _dobController, 40),
                 ],
               ),
@@ -290,23 +299,6 @@ class _MyProfilePageState extends State<MyProfilePage> {
           );
   }
 
-  //retrieve longitude and latitude of user's location
-  _getCurrentLocation() {
-    final Geolocator geolocator = Geolocator()..forceAndroidLocationManager;
-
-    geolocator
-        .getCurrentPosition(desiredAccuracy: LocationAccuracy.best)
-        .then((Position position) {
-      print(position);
-      setState(() {
-        _currentPosition = position;
-        print(position);
-      });
-    }).catchError((e) {
-      print(e);
-    });
-    print(_currentPosition);
-  }
 }
 
 //shows text fields with user info
