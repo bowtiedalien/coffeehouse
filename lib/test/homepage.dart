@@ -147,7 +147,11 @@ class _MyHomePageState extends State<MyHomePage> {
                                       .collection('order')
                                       .document('nYgTyxjkpQAOKjULyK2m')
                                       .updateData({
-                                    'order list': [coffeeNames[index], cupSizeSelected, flavourSelected],
+                                    'order list': [
+                                      coffeeNames[index],
+                                      cupSizeSelected,
+                                      flavourSelected
+                                    ],
                                   });
                                 },
                                 shape: RoundedRectangleBorder(

@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/rendering.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-//import 'SignUp.dart';
+import 'SignUp.dart';
 import 'SignIn.dart';
+import 'package:challenge_1/main.dart';
+import 'package:provider/provider.dart';
 
 bool editable =
     true; //this decides weather info appears as readonly or editable text fields
@@ -20,35 +22,19 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  void refresh() {
-    setState(() {});
-  }
-
   @override
   Widget build(BuildContext context) {
-    getDocs();
-    if (isSignedIn)
-      return MyProfilePage(userEmail, userName, userGender, userPhone,
-          userBirthdate, userAddress, userImage, refresh);
+    final myModel = Provider.of<MyModel>(
+        context); //this makes the ProfilePage act as a consumer
+
+    if (myModel.userIsSignedIn)
+      return MyProfilePage();
     else
-      return SignIn(notifyParent: refresh); //can return SignUp instead. Which is more instinctive?
+      return SignInSignUp(); //can return SignUp instead. Which is more instinctive?
   }
 }
 
 class MyProfilePage extends StatefulWidget {
-  String _userEmail;
-  String name;
-  String gender;
-  String phone;
-  String birthdate;
-  String address;
-  String image;
-
-  final Function() notifyParent;
-
-  MyProfilePage(this._userEmail, this.name, this.gender, this.phone,
-      this.birthdate, this.address, this.image, this.notifyParent);
-
   @override
   _MyProfilePageState createState() => _MyProfilePageState();
 }
@@ -56,75 +42,122 @@ class MyProfilePage extends StatefulWidget {
 class _MyProfilePageState extends State<MyProfilePage> {
   Position _currentPosition;
 
+  bool loading = false;
+
   Widget updateProfileInfo() {
     //todo: update the user info according to email information and do not pass static document ID like this
-    Firestore.instance
-        .collection('users')
-        .document('P86syncJAcKjY9PKq60l')
-        .updateData({
-      'FirstName':
-          (widget.name).substring(0, widget.name.toString().indexOf(' ')),
-      'LastName': (widget.name)
-          .substring(widget.name.toString().indexOf(' '), widget.name.length),
-      'address': widget.address,
-      'birthdate': widget.birthdate,
-      'gender': widget.gender,
-      'phone number': widget.phone,
-      'LAT': _currentPosition.latitude,
-      'LONG': _currentPosition.longitude,
+    Firestore.instance.collection('users').document(userDocID).updateData({
+      'FirstName': (userName).substring(0, userName.toString().indexOf(' ')),
+      'LastName': (userName)
+          .substring(userName.toString().indexOf(' '), userName.length),
+      'address': userAddress,
+      'birthdate': userBirthdate,
+      'gender': userGender,
+      'phone number': userPhone,
+      'LAT': _currentPosition.latitude != null ? _currentPosition.latitude : '',
+      'LONG':
+          _currentPosition.longitude != null ? _currentPosition.longitude : '',
     });
     print('printing out the data');
   }
 
   Widget displayName() {
-    if (widget.name == null)
+    if (userName == null)
       return displayName();
     else
-      return Text( //in here, an out-of-range error is thrown when name is not ready yet
+      return Text(
+        //in here, an out-of-range error is thrown when name is not ready yet
         'Hello, ' +
-            '${widget.name.toString().substring(0, widget.name.toString().indexOf(' '))}' +
+            '${userName.toString().substring(0, userName.toString().indexOf(' '))}' +
             '!',
         style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
       );
   }
 
+  Future getDocs() async {
+    setState(() {
+      loading = true;
+    });
+    final result =
+        await Firestore.instance.collection('users').document(userDocID).get();
+//  List<DocumentSnapshot> documents = result.documents;
+    if (result.exists) {
+      //wait until you have the data
+      if (result.data['FirstName'] != null) {
+        print(result.data['FirstName'] + ' ' + result.data['LastName']);
+        userName = result.data['FirstName'] + ' ' + result.data['LastName'];
+        userAddress = result.data['address'];
+        userGender = result.data['gender'];
+        userPhone = result.data['phone number'];
+        userImage = result.data['profile picture'];
+        userBirthdate = result.data['birthdate'];
+      } else {
+        userName = "User 1";
+        userAddress = "";
+        userGender = "";
+        userPhone = "";
+        userPhone = "";
+        userImage = "";
+        userBirthdate = "";
+      }
+      setState(() {
+        loading = false;
+        profilePageIsFetched = true;
+      });
+    } else
+      print('retrieving data');
+    //print(data.data);
+  }
+
+  @override
+  void initState() {
+    getDocs();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: <Widget>[
-        Column(
-          children: <Widget>[
-            Container(
-              alignment: Alignment.topLeft,
-              margin: EdgeInsets.only(top: 10, left: 5),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    final mymodel = Provider.of<MyModel>(
+        context); //this makes the ProfilePage act as a consumer
+
+    return loading && !profilePageIsFetched
+        ? Center(child: CircularProgressIndicator())
+        : ListView(
+            children: <Widget>[
+              Column(
                 children: <Widget>[
-                  Text(
-                    //in here, an out-of-range error is thrown when name is not ready yet
-                    'Hello, ' +
-                        '${widget.name.toString().substring(0, widget.name.toString().indexOf(' '))}' +
-                        '!',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-                  ),
-                  OutlineButton(
-                    borderSide: BorderSide(
-                      color: Colors.transparent,
+                  Container(
+                    alignment: Alignment.topLeft,
+                    margin: EdgeInsets.only(top: 10, left: 5),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text(
+                          //in here, an out-of-range error is thrown when name is not ready yet
+                          'Hello, ' +
+                              '${userName.toString().substring(0, userName.toString().indexOf(' '))}' +
+                              '!',
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.w500),
+                        ),
+                        OutlineButton(
+                          borderSide: BorderSide(
+                            color: Colors.transparent,
+                          ),
+                          child: Text('Edit Profile'),
+                          onPressed: () {
+                            editable = true;
+                            setState(() {});
+                          },
+                        ),
+                      ],
                     ),
-                    child: Text('Edit Profile'),
-                    onPressed: () {
-                      editable = true;
-                      setState(() {});
-                    },
                   ),
-                ],
-              ),
-            ),
-            Divider(),
-            //the image and 'edit my profile'
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: <Widget>[
+                  Divider(),
+                  //the image and 'edit my profile'
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: <Widget>[
 //                Container(
 //                  margin: EdgeInsets.only(left: 10),
 //                  //this should be at the far right with a margin
@@ -145,8 +178,8 @@ class _MyProfilePageState extends State<MyProfilePage> {
 //                    ),
 //                  ),
 //                ),
-                //),
-                //this is not doing what it's supposed to do
+                      //),
+                      //this is not doing what it's supposed to do
 //                    Positioned(
 //                      top: screenHeight / 11,
 //                      left: screenWidth / 6,
@@ -155,108 +188,106 @@ class _MyProfilePageState extends State<MyProfilePage> {
 //                        child: Icon(Icons.camera_alt),
 //                      ),
 //                    ),
-              ],
-            ),
-            editable
-                ? userInfoBoxEditable(
-                    'Name', _nameController, '${widget.name}', 40)
-                : userInfoBox('Name', '${widget.name}', _nameController, 40),
-            editable
-                ? userInfoBoxEditable(
-                    'Address', _addressController, '${widget.address}', 80)
-                : userInfoBox(
-                    'Address', '${widget.address}', _addressController, 80),
-            IconButton(
-              icon: Icon(Icons.location_on),
-              onPressed: () {
-                _getCurrentLocation();
-              },
-            ),
-            Text(_currentPosition != null
-                ? '-> LAT: ${_currentPosition.latitude}, LNG: ${_currentPosition.longitude} <-'
-                : 'location undefined'),
-            editable
-                ? userInfoBoxEditable(
-                    'Gender', _genderController, '${widget.gender}', 40)
-                : userInfoBox(
-                    'Gender', '${widget.gender}', _genderController, 40),
-            editable
-                ? userInfoBoxEditable(
-                    'Phone Number', _phoneController, '${widget.phone}', 40)
-                : userInfoBox(
-                    'Phone Number', '${widget.phone}', _phoneController, 40),
-            editable
-                ? userInfoBoxEditable(
-                    'Date of Birth', _dobController, '${widget.birthdate}', 40)
-                : userInfoBox(
-                    'Date of Birth', '${widget.birthdate}', _dobController, 40),
-          ],
-        ),
-        Container(
-          width: 100,
-          child: OutlineButton(
-            child: Text('Save'),
-            onPressed: () {
-              //1. refresh page to be read-only
-              editable = false;
+                    ],
+                  ),
+                  editable
+                      ? userInfoBoxEditable(
+                          'Name', _nameController, '${userName}', 40)
+                      : userInfoBox('Name', '${userName}', _nameController, 40),
+                  editable
+                      ? userInfoBoxEditable(
+                          'Address', _addressController, '${userAddress}', 80)
+                      : userInfoBox(
+                          'Address', '${userAddress}', _addressController, 80),
+                  IconButton(
+                    icon: Icon(Icons.location_on),
+                    onPressed: () {
+                      _getCurrentLocation();
+                    },
+                  ),
+                  Text(_currentPosition != null
+                      ? '-> LAT: ${_currentPosition.latitude}, LNG: ${_currentPosition.longitude} <-'
+                      : 'location undefined'),
+                  editable
+                      ? userInfoBoxEditable(
+                          'Gender', _genderController, '${userGender}', 40)
+                      : userInfoBox(
+                          'Gender', '${userGender}', _genderController, 40),
+                  editable
+                      ? userInfoBoxEditable(
+                          'Phone Number', _phoneController, '${userPhone}', 40)
+                      : userInfoBox(
+                          'Phone Number', '${userPhone}', _phoneController, 40),
+                  editable
+                      ? userInfoBoxEditable('Date of Birth', _dobController,
+                          '${userBirthdate}', 40)
+                      : userInfoBox('Date of Birth', '${userBirthdate}',
+                          _dobController, 40),
+                ],
+              ),
+              Container(
+                width: 100,
+                child: OutlineButton(
+                  child: Text('Save'),
+                  onPressed: () {
+                    //1. refresh page to be read-only
+                    editable = false;
 
-              //2. send info to firestore
-              setState(() {
-                if (_nameController.text == "" || _nameController.text == null)
-                  _nameController.text = widget.name;
-                else {
-                  widget.name = _nameController.text;
-                }
-                if (_addressController.text == "" ||
-                    _addressController.text == null)
-                  _addressController.text = widget.address;
-                else {
-                  widget.address = _addressController.text;
-                }
-                if (_phoneController.text == "" ||
-                    _phoneController.text == null)
-                  _phoneController.text = widget.phone;
-                else {
-                  widget.phone = _phoneController.text;
-                }
-                if (_genderController.text == "" ||
-                    _genderController.text == null)
-                  _genderController.text = widget.gender;
-                else {
-                  widget.gender = _genderController.text;
-                }
-                if (_dobController.text == "" || _dobController.text == null)
-                  _dobController.text = widget.birthdate;
-                else {
-                  widget.birthdate = _dobController.text;
-                }
-                updateProfileInfo(); //send all information to firebase
-              });
-            },
-          ),
-        ),
-        Container(
-          width: 100,
-          color: Colors.red,
-          child: OutlineButton(
-            child: Text(
-              'Sign Out',
-              style: TextStyle(color: Colors.white),
-            ),
-            onPressed: () {
-              editable = false;
-              setState(() {
-                //go to SignIn page - works
-                isSignedIn = false;
-                setState(() {
-                  widget.notifyParent();
-                });
-              });
-            },
-          ),
-        ),
-      ],
-    );
+                    //2. send info to firestore
+                    setState(() {
+                      if (_nameController.text == "" ||
+                          _nameController.text == null)
+                        _nameController.text = userName;
+                      else {
+                        userName = _nameController.text;
+                      }
+                      if (_addressController.text == "" ||
+                          _addressController.text == null)
+                        _addressController.text = userAddress;
+                      else {
+                        userAddress = _addressController.text;
+                      }
+                      if (_phoneController.text == "" ||
+                          _phoneController.text == null)
+                        _phoneController.text = userPhone;
+                      else {
+                        userPhone = _phoneController.text;
+                      }
+                      if (_genderController.text == "" ||
+                          _genderController.text == null)
+                        _genderController.text = userGender;
+                      else {
+                        userGender = _genderController.text;
+                      }
+                      if (_dobController.text == "" ||
+                          _dobController.text == null)
+                        _dobController.text = userBirthdate;
+                      else {
+                        userBirthdate = _dobController.text;
+                      }
+                      updateProfileInfo(); //send all information to firebase
+                    });
+                  },
+                ),
+              ),
+              Container(
+                width: 100,
+                color: Colors.red,
+                child: OutlineButton(
+                  child: Text(
+                    'Sign Out',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  onPressed: () {
+                    editable = false;
+                    setState(() {
+                      mymodel.signOut();
+                    });
+                  },
+                ),
+              ),
+            ],
+          );
   }
 
   //retrieve longitude and latitude of user's location

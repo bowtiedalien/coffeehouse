@@ -188,7 +188,6 @@ class _ShoppingCartState extends State<ShoppingCart> {
               ],
             ),
           ),
-
         ],
       ),
     );
@@ -231,7 +230,8 @@ class _orderTilesState extends State<orderTiles> {
                 return Row(
                   children: <Widget>[
                     Image(
-                      image: AssetImage(coffeeImages[coffeeNames.indexOf(orders[index][0])]),
+                      image: AssetImage(
+                          coffeeImages[coffeeNames.indexOf(orders[index][0])]),
                       width: 50,
                     ),
                     Container(
@@ -293,12 +293,6 @@ class _orderTilesState extends State<orderTiles> {
               },
             ),
           ),
-//          Row(
-//            children: <Widget>[
-//              Text('delete'),
-//              Icon(Icons.delete),
-//            ],
-//          ),
         ],
       ),
     );
@@ -342,9 +336,9 @@ class _orderInfoFinalisedState extends State<orderInfoFinalised> {
                     height: 70,
                     child: Center(
                         child: Text(
-                          widget.address,
-                          style: TextStyle(color: Colors.blueAccent),
-                        )),
+                      widget.address,
+                      style: TextStyle(color: Colors.blueAccent),
+                    )),
                   ),
                   cardTitle('Payment Method'),
                   Container(
@@ -353,9 +347,9 @@ class _orderInfoFinalisedState extends State<orderInfoFinalised> {
                     height: 35,
                     child: Center(
                         child: Text(
-                          paymentMethod,
-                          style: TextStyle(color: Colors.blueAccent),
-                        )),
+                      paymentMethod,
+                      style: TextStyle(color: Colors.blueAccent),
+                    )),
                   ),
                   Divider(),
                   SizedBox(
@@ -394,9 +388,9 @@ class _orderInfoFinalisedState extends State<orderInfoFinalised> {
   }
 }
 
-
 void sendOrderInfo() {
-  Firestore.instance.collection('order')
+  Firestore.instance
+      .collection('order')
       .document('nYgTyxjkpQAOKjULyK2m')
       .updateData({
     'address': _addressController.text,

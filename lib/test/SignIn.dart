@@ -1,18 +1,14 @@
 import 'package:challenge_1/resources/data.dart';
-import 'package:challenge_1/test/SignUp.dart';
-import 'package:challenge_1/test/profilePage.dart';
 import 'package:flutter/material.dart';
 import 'package:challenge_1/resources/models.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:challenge_1/main.dart';
 
-var emailController = new TextEditingController(); 
+var emailController = new TextEditingController();
 var passwordController = new TextEditingController();
 
 class SignIn extends StatefulWidget {
-  final Function() notifyParent;
-
-  SignIn({Key key, @required this.notifyParent}) : super(key: key);
-
   @override
   _SignInState createState() => _SignInState();
 }
@@ -20,16 +16,16 @@ class SignIn extends StatefulWidget {
 class _SignInState extends State<SignIn> {
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context)
-        .size
-        .width;
+    final mymodel = Provider.of<MyModel>(context);
+
+    double screenWidth = MediaQuery.of(context).size.width;
     return SingleChildScrollView(
       child: Container(
         margin: EdgeInsets.all(20),
         child: Column(
           children: <Widget>[
             TextField(
-              controller: emailController,
+                controller: emailController,
                 decoration: InputDecoration(
                     labelText: "Email", hintText: "youremail@example.com")),
             SizedBox(
@@ -55,30 +51,33 @@ class _SignInState extends State<SignIn> {
                 ),
                 color: bgColor,
                 onPressed: () {
-                  Firestore.instance.collection('users').document('P86syncJAcKjY9PKq60l').get().then((snapshot){
+                  getUsers(emailController.text); //debugging
+                  Firestore.instance
+                      .collection('users')
+                      .document(userDocID)
+                      .get()
+                      .then((snapshot) {
                     if (snapshot.exists) {
-                      if(snapshot.data['email'] == emailController.text && snapshot.data['password'] == passwordController.text)
-                        {
-                          print('sign in successful');
-                          isSignedIn = true;
-                          setState(() {
-
-                          });
-                          widget.notifyParent();
-                        }
-                      else
-                        {
-                          showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: Text(
-                                    'Email or password not correct!',
-                                  ),
-                                );
-                              });
-                        }
-                    }
+                      if (snapshot.data['email'] == emailController.text &&
+                          snapshot.data['password'] ==
+                              passwordController.text) {
+                        print('sign in successful');
+                        setState(() {
+                          mymodel.showProfile();
+                        });
+                      } else {
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text(
+                                  'Email or password not correct!',
+                                ),
+                              );
+                            });
+                      }
+                    } else
+                      print('unable to get document');
                   });
                 },
               ),
@@ -101,8 +100,9 @@ class _SignInState extends State<SignIn> {
                   ),
                   color: bgColor,
                   onPressed: () {
-                    hasAccount = false;
-                    return; //check if this works: this should go back to parent widget and test the if condition, then redirect to SignUp
+                    setState(() {
+                      mymodel.signUp();
+                    });
                   },
                 ),
               ),

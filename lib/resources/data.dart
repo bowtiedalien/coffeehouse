@@ -3,9 +3,12 @@ import 'dart:core';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
 
-//declare all variables and functions here-------------------
+bool profilePageIsFetched = false;
+//GLOBAL
+String userDocID =
+    'QgEqFX4AklQfLY85jnDV'; //stores all the info of the current logged in user
 
-bool isSignedIn = true;
+//declare all variables and functions here-------------------
 String userName; //this gets set once
 String userImage;
 String userPhone;
@@ -106,11 +109,8 @@ Widget getData() {
   var test = {
     'name': 'sara'
   }; //what a map is, 'name' is the key, 'sara' is the value. Hence in a map, keys are linked to values.
-  return StreamBuilder(
-      stream: Firestore.instance
-          .collection('users')
-          .document('37zlwhMsLr5NMPUociLP')
-          .snapshots(),
+  return FutureBuilder(
+      future: Firestore.instance.collection('users').document(userDocID).get(),
       builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
         if (snapshot.hasData) {
           final snapshotData = snapshot.data;
@@ -125,47 +125,44 @@ Widget getData() {
       });
 }
 
-var orders = List<List<String>>.generate(5,(i) => List<String>.generate(5, (j) => '')); //Critical Note: 5 is an arbitrary size
+var orders = List<List<String>>.generate(
+  5,
+  (i) => List<String>.generate(5, (j) => ''),
+); //Critical Note: 5 is an arbitrary size
 
-Future getOrderList() async{
+Future getOrderList() async {
   //get order list from firebase
   //sets the value of coffeeName, coffeePrice, coffeeFlavour, coffeeSize
   //displays them to user in orderFinalised()
 
   DocumentReference documentReference =
-  Firestore.instance.collection('order').document('nYgTyxjkpQAOKjULyK2m');
+      Firestore.instance.collection('order').document('nYgTyxjkpQAOKjULyK2m');
   documentReference.get().then((datasnapshot) {
     if (datasnapshot.exists) {
       print(datasnapshot.data['order list']);
-        print(datasnapshot.data['order list'][0]);
-        orders[0][0] = datasnapshot.data['order list'][0].toString();
+      print(datasnapshot.data['order list'][0]);
+      orders[0][0] = datasnapshot.data['order list'][0].toString();
 //        print('orders:' + orders[0][0]); for debugging
-    }
-    else {
+    } else {
       print('loading');
     }
   });
 }
 
-//this is for getting info displayed in user profile
-Future getDocs() async {
+Future getUsers(String enteredEmail) async {
   final QuerySnapshot result =
       await Firestore.instance.collection('users').getDocuments();
   List<DocumentSnapshot> documents = result.documents;
-  if(documents.isNotEmpty) { //wait until you have the data
+  if (documents.isNotEmpty) {
+    //wait until you have the data
     documents.forEach((data) {
-      if (data.data['email'] == 'sarahxd62@yahoo.com') {
-        print(data.data['FirstName'] + ' ' + data.data['LastName']);
-        userName = data.data['FirstName'] + ' ' + data.data['LastName'];
-        userAddress = data.data['address'];
-        userGender = data.data['gender'];
-        userPhone = data.data['phone number'];
-        userImage = data.data['profile picture'];
-        userBirthdate = data.data['birthdate'];
-      }
-      else
+      if (data.data['email'] == enteredEmail) {
+        print(data.documentID);
+        userDocID = data.documentID;
+        //return the document number
+      } else {
         print('retrieving data');
-      //print(data.data);
+      }
     });
   }
 }
