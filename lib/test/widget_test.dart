@@ -7,18 +7,35 @@ import 'profilePage.dart';
 import 'ShoppingCart.dart';
 import 'dart:async';
 
+
+FontWeight homeScreenTitleFontWeight;
+Color homeScreenTitleColor;
 //MyApp -- Splash Screen
 class MyApp extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
+  Widget changeState(){
+    changestate();
+    return Container();
+  }
+  void changestate()
+  {
+    setState(() {
+      homeScreenTitleFontWeight = FontWeight.bold;
+      homeScreenTitleColor = Colors.white;
+    });
+  }
   //splash screen effect - wait for 3 seconds then redirect to HomePage
   @override
   void initState() {
+    homeScreenTitleFontWeight = FontWeight.w100;
+    homeScreenTitleColor = Colors.grey;
+
     super.initState();
     Future.delayed(
-      Duration(seconds: 3),
+      Duration(seconds: 5),
       () {
         Navigator.pushReplacement(
           context,
@@ -29,7 +46,6 @@ class _MyAppState extends State<MyApp> {
       },
     );
   }
-
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context)
@@ -43,14 +59,23 @@ class _MyAppState extends State<MyApp> {
           Container(
             width: screenWidth - 50,
             margin: EdgeInsets.fromLTRB(59, 70, 0, 0),
-            child: Text(
-              "Welcome to Coffee House",
+            child: AnimatedDefaultTextStyle(
               style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 40,
-                  color: Colors.white),
+                fontSize: 40,
+                fontWeight: homeScreenTitleFontWeight,
+                color: homeScreenTitleColor,
+              ),
+              duration: const Duration(milliseconds: 500),
+              child: Text(
+                "Welcome to" + "\nCoffee House",
+//                style: TextStyle(
+//                    fontWeight: FontWeight.w100,
+//                    fontSize: 20,
+//                    color: Colors.white),
+              ),
             ),
           ),
+          changeState(),
           Container(
             margin: EdgeInsets.only(top: screenHeight / 7.2),
             child: Image.asset(

@@ -65,7 +65,9 @@ class _SignInState extends State<SignIn> {
                         setState(() {
                           mymodel.showProfile();
                         });
-                      } else {
+                      } else if(snapshot.data['email'] != emailController.text ||
+                          snapshot.data['password'] !=
+                              passwordController.text){
                         showDialog(
                             context: context,
                             builder: (BuildContext context) {

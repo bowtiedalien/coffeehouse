@@ -105,30 +105,6 @@ List<String> coffeeIng = [
   'coffee, ice cream, nuts'
 ];
 
-var orders = List<List<String>>.generate(
-  5,
-  (i) => List<String>.generate(5, (j) => ''),
-); //Critical Note: 5 is an arbitrary size
-
-Future getOrderList() async {
-  //get order list from firebase
-  //sets the value of coffeeName, coffeePrice, coffeeFlavour, coffeeSize
-  //displays them to user in orderFinalised()
-
-  DocumentReference documentReference =
-      Firestore.instance.collection('order').document('nYgTyxjkpQAOKjULyK2m');
-  documentReference.get().then((datasnapshot) {
-    if (datasnapshot.exists) {
-      print(datasnapshot.data['order list']);
-      print(datasnapshot.data['order list'][0]);
-      orders[0][0] = datasnapshot.data['order list'][0].toString();
-//        print('orders:' + orders[0][0]); for debugging
-    } else {
-      print('loading');
-    }
-  });
-}
-
 Future getUsers(String enteredEmail) async {
   final QuerySnapshot result =
       await Firestore.instance.collection('users').getDocuments();

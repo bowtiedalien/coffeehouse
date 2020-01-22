@@ -11,7 +11,9 @@ void main() {
     theme: ThemeData(primaryColor: bgColor),
     debugShowCheckedModeBanner: false,
     home: ChangeNotifierProvider<MyModel>(
-        create: (context) => MyModel(), child: MyApp()),
+      create: (context) => MyModel(),
+      child: MyApp(),
+    ),
   ));
   SystemChannels.textInput.invokeMethod('TextInput.hide');
 }

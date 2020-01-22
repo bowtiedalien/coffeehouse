@@ -140,19 +140,47 @@ class _MyHomePageState extends State<MyHomePage> {
                             ),
                             RaisedButton(
                                 onPressed: () {
-                                  //note: use firebase with this., orders should be a collection.
-                                  //Inside Orders,
-                                  //there is 'OrderId', 'Coffee Name', 'Flavours', 'Cup Size' as documents
-                                  Firestore.instance
-                                      .collection('order')
-                                      .document('nYgTyxjkpQAOKjULyK2m')
-                                      .updateData({
-                                    'order list': [
-                                      coffeeNames[index],
-                                      cupSizeSelected,
-                                      flavourSelected
-                                    ],
-                                  });
+                                  //TODO: uncomment when you figure out how to dynamically create an array of maps
+//                                  Firestore.instance
+//                                      .collection('order')
+//                                      .document('nYgTyxjkpQAOKjULyK2m')
+//                                      .updateData({
+//                                    'order list': [
+//                                      coffeeNames[index],
+//                                      cupSizeSelected,
+//                                      flavourSelected
+//                                    ],
+//                                  });
+
+                                  if (cupSizeSelected == null) {
+                                    print('no customisation was chosen');
+                                    showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            title: Text(
+                                              'You have to choose the size of your cup!',
+                                            ),
+                                          );
+                                        });
+                                  } else {
+                                    showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          Future.delayed(Duration(seconds: 1),
+                                              () {
+                                            Navigator.of(context).pop(true);
+                                          });
+                                          return AlertDialog(
+                                            title: Text(
+                                              'Your order has been added to the cart successfuly!',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.w400),
+                                            ),
+                                          );
+                                        });
+                                  }
                                 },
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(18),

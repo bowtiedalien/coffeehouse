@@ -1,14 +1,20 @@
 import 'package:challenge_1/resources/data.dart';
+import 'package:challenge_1/test/homepage.dart';
 import 'package:flutter/material.dart';
 import 'package:challenge_1/resources/models.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
 
 String paymentMethod; //stores the payment method chosen
-bool orderFinalised = false;
+
 bool plusClicked = false;
 bool minusClicked = false;
 int _orderQuantity = 1;
+bool orderLoading;
 var _addressController = TextEditingController();
+String orderName;
+
+var orders = <Map>[]; //create an empty list of map
 
 Widget priceReport(double subt, double shp) {
   return Column(children: <Widget>[
@@ -84,33 +90,73 @@ Widget cardTitle(String title) {
   );
 }
 
-class ShoppingCart extends StatefulWidget {
+class ShoppingCart extends StatelessWidget {
   @override
-  _ShoppingCartState createState() => _ShoppingCartState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+        create: (context) => ShoppingCartModel(),
+        child: MyShoppingCart(),);
+  }
 }
 
-class _ShoppingCartState extends State<ShoppingCart> {
-  refresh() {
-    setState(() {});
+class MyShoppingCart extends StatefulWidget {
+  @override
+  _MyShoppingCartState createState() => _MyShoppingCartState();
+}
+
+class _MyShoppingCartState extends State<MyShoppingCart> {
+  Future getOrderList() async {
+    setState(() {
+      orderLoading = true;
+    });
+    DocumentReference documentReference =
+    Firestore.instance.collection('order').document('nYgTyxjkpQAOKjULyK2m');
+    await documentReference.get().then((datasnapshot) {
+      if (datasnapshot.exists) {
+//        print(datasnapshot.data['order list']);
+        print(datasnapshot.data['order list'][0]);
+        //there is something wrong here
+        //orders[0]['coffee name'] = datasnapshot.data['order list'][0]['coffee name'].toString();
+        print('before problematic');
+        orders.add({'coffee name': datasnapshot.data['order list'][0]['coffee name']});
+        print('after problematic');
+        orderName = orders[0]['coffee name'];
+        setState(() {
+          orderLoading = false;
+          print(orderLoading);
+        });
+      } else {
+        print('loading');
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    getOrderList();
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    getOrderList();
-    print('orders from Shopping Cart: ' + orders[0][0]);
+//    print('orders from Shopping Cart: ' + orders[0]['coffee name']);
+//    print('is order loading: ' + orderLoading.toString());
 
-    orderTiles(
-        notifyParent: refresh()); //passing parent function to child widget
-
-    if (orderFinalised)
+    final model = Provider.of<ShoppingCartModel>(
+        context);
+    if (model.orderFinalised)
       return orderInfoFinalised(_addressController.text, paymentMethod, 10, 2);
-    return SingleChildScrollView(
+    else
+      return orderLoading
+        ? Center(child: CircularProgressIndicator())
+        : SingleChildScrollView(
       child: Column(
         children: <Widget>[
           Container(
             padding: EdgeInsets.only(top: 10, left: 10),
             child: Text('Shopping Cart',
-                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
+                style:
+                TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
             alignment: Alignment.topLeft,
           ),
           orderTiles(), //a loop that calls all orders from firebase
@@ -164,12 +210,9 @@ class _ShoppingCartState extends State<ShoppingCart> {
                 ),
                 coffeeButton('Proceed to Checkout', () {
                   //add verification for payment type and address - user HAS to enter them
-                  if (_addressController.text != null &&
-                      _addressController.text != "" &&
-                      paymentMethod != null) {
-                    orderFinalised = true;
-                    sendOrderInfo();
-                  } else {
+                  if (_addressController.text == null ||
+                      _addressController.text == "" ||
+                      paymentMethod == null) {
                     print('textfield empty');
                     showDialog(
                         context: context,
@@ -180,6 +223,11 @@ class _ShoppingCartState extends State<ShoppingCart> {
                             ),
                           );
                         });
+                  } else {
+                    final model = Provider.of<ShoppingCartModel>(
+                        context);
+//                    sendOrderInfo();
+                    model.finaliseOrder();
                   }
                   setState(() {
                     //refresh page to make it read-only
@@ -194,11 +242,8 @@ class _ShoppingCartState extends State<ShoppingCart> {
   }
 }
 
+
 class orderTiles extends StatefulWidget {
-  final Function() notifyParent;
-
-  orderTiles({Key key, @required this.notifyParent}) : super(key: key);
-
   @override
   _orderTilesState createState() => _orderTilesState();
 }
@@ -206,6 +251,9 @@ class orderTiles extends StatefulWidget {
 class _orderTilesState extends State<orderTiles> {
   @override
   Widget build(BuildContext context) {
+    final model = Provider.of<ShoppingCartModel>(
+        context);
+
     void add() {
       _orderQuantity++;
       setState(() {});
@@ -225,70 +273,77 @@ class _orderTilesState extends State<orderTiles> {
         children: <Widget>[
           Expanded(
             child: ListView.builder(
-              itemCount: 1, //orders.length,
+              itemCount: orders.length, //orders.length,
               itemBuilder: (context, int index) {
-                return Row(
-                  children: <Widget>[
-                    Image(
-                      image: AssetImage(
-                          coffeeImages[coffeeNames.indexOf(orders[index][0])]),
-                      width: 50,
-                    ),
-                    Container(
-                      margin: EdgeInsets.only(left: 40, top: 10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(orders[index][0]),
-                          Text('\$15'),
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(30),
-                              border: Border.all(color: Colors.brown[200]),
-                            ),
-                            margin: EdgeInsets.only(top: 5),
-                            height: 25,
-                            child: Row(
-                              children: <Widget>[
-                                GestureDetector(
-                                  //click action is not working
-                                  onTap: () {
-                                    if (!orderFinalised) {
-                                      add();
-                                      setState(() {
-                                        widget.notifyParent();
-                                      });
-                                      print(_orderQuantity);
-                                    }
-                                  },
-                                  child: Icon(Icons.add),
-                                ),
-                                Container(
-                                    margin: EdgeInsets.all(0),
-                                    padding: EdgeInsets.all(2),
-                                    child: Text(_orderQuantity.toString())),
-                                GestureDetector(
-                                  //click action is not working
-                                  onTap: () {
-                                    if (!orderFinalised) {
-                                      minus();
-                                      setState(() {});
-                                      widget.notifyParent();
-                                    }
-                                  },
-                                  child: Icon(
-                                      const IconData(0xe15b,
-                                          fontFamily: 'MaterialIcons'),
-                                      color: Colors.black),
-                                ),
-                              ],
-                            ),
-                            //quantity button here
-                          ),
-                        ],
+                return Dismissible(
+                  key: Key(orders[index].toString()),
+                  background: Container(
+                    color: bgColor,
+                  ),
+                  onDismissed: (direction){
+                    setState(() {
+                      orders.removeAt(index); //remove the order from the orders list
+                    });
+                  },
+                  child: Row(
+                    children: <Widget>[
+                      Image(
+                        image: AssetImage(
+                          coffeeImages[coffeeNames.indexOf(orders[index]['coffee name'])],
+                           ),
+                        width: 50,
                       ),
-                    ),
-                  ],
+                      Container(
+                        margin: EdgeInsets.only(left: 40, top: 10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(orders[0]['coffee name']),
+                            Text('\$15'),
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(30),
+                                border: Border.all(color: Colors.brown[200]),
+                              ),
+                              margin: EdgeInsets.only(top: 5),
+                              height: 25,
+                              child: Row(
+                                children: <Widget>[
+                                  GestureDetector(
+                                    onTap: () {
+                                      if (!model.orderFinalised) {
+                                        add();
+                                        setState(() {});
+                                        print(_orderQuantity);
+                                      }
+                                    },
+                                    child: Icon(Icons.add),
+                                  ),
+                                  Container(
+                                      margin: EdgeInsets.all(0),
+                                      padding: EdgeInsets.all(2),
+                                      child: Text(_orderQuantity.toString())),
+                                  GestureDetector(
+                                    onTap: () {
+                                      if (!model.orderFinalised) {
+                                        minus();
+                                        setState(() {});
+                                      }
+                                    },
+                                    child: Icon(
+                                        const IconData(0xe15b,
+                                            fontFamily: 'MaterialIcons'),
+                                        color: Colors.black),
+                                  ),
+                                ],
+                              ),
+                              //quantity button here
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               },
             ),
@@ -388,13 +443,24 @@ class _orderInfoFinalisedState extends State<orderInfoFinalised> {
   }
 }
 
-void sendOrderInfo() {
-  Firestore.instance
-      .collection('order')
-      .document('nYgTyxjkpQAOKjULyK2m')
-      .updateData({
-    'address': _addressController.text,
-    'payment method': paymentMethod,
-    'order quantity': _orderQuantity,
-  });
+//void sendOrderInfo() {
+//  Firestore.instance
+//      .collection('order')
+//      .document()
+//      .setData({
+//    //TODO: how to dynamically create a subcollection
+//    //'order list': [{'coffee name': orderName, 'cup size': cupSizeSelected, 'flavour': flavourSelected}],
+//    'address': _addressController.text,
+//    'payment method': paymentMethod,
+//    'order quantity': _orderQuantity,
+//  });
+//}
+
+class ShoppingCartModel with ChangeNotifier{
+  bool orderFinalised = false;
+
+  void finaliseOrder() {
+      orderFinalised = true;
+      notifyListeners();
+  }
 }

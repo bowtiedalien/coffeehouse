@@ -45,18 +45,17 @@ class _MyProfilePageState extends State<MyProfilePage> {
 
   //when profile page info is updated, send new data to firebase
   Widget updateProfileInfo() {
-    //todo: update the user info according to email information and do not pass static document ID like this
     Firestore.instance.collection('users').document(userDocID).updateData({
-      'FirstName': (userName).substring(0, userName.toString().indexOf(' ')),
-      'LastName': (userName)
-          .substring(userName.toString().indexOf(' '), userName.length),
+      'FirstName': userName.contains(' ')?(userName).substring(0, userName.toString().indexOf(' ')):userName,
+      'LastName': userName.contains(' ')?(userName)
+          .substring(userName.toString().indexOf(' '), userName.length):'',
       'address': userAddress,
       'birthdate': userBirthdate,
       'gender': userGender,
       'phone number': userPhone,
-      'LAT': _currentPosition.latitude != null ? _currentPosition.latitude : '',
+      'LAT': _currentPosition != null ? _currentPosition.latitude : '',
       'LONG':
-          _currentPosition.longitude != null ? _currentPosition.longitude : '',
+          _currentPosition != null ? _currentPosition.longitude : '',
     });
     print('printing out the data');
   }
@@ -83,7 +82,6 @@ class _MyProfilePageState extends State<MyProfilePage> {
     final result =
         await Firestore.instance.collection('users').document(userDocID).get();
     if (result.exists) {
-      //wait until you have the data
       if (result.data['FirstName'] != null) {
         print(result.data['FirstName'] + ' ' + result.data['LastName']);
         userName = result.data['FirstName'] + ' ' + result.data['LastName'];
@@ -121,9 +119,10 @@ class _MyProfilePageState extends State<MyProfilePage> {
         _currentPosition = position;
         print(position);
       });
-    }).catchError((e) {
-      print(e);
     });
+//        .catchError((e) {
+//      print(e);
+//    });
     print(_currentPosition);
   }
 
@@ -151,9 +150,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
                         Text(
-                          //in here, an out-of-range error is thrown when name is not ready yet
-                          'Hello, ' +
-                              '${userName.toString().substring(0, userName.toString().indexOf(' '))}' +
+                          'Hello, ' + (userName.contains(' ')?'${userName.toString().substring(0, userName.toString().indexOf(' '))}':userName) +
                               '!',
                           style: TextStyle(
                               fontSize: 20, fontWeight: FontWeight.w500),
@@ -274,6 +271,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                       else {
                         userBirthdate = _dobController.text;
                       }
+                      print('before updating data');
                       updateProfileInfo(); //send all information to firebase
                     });
                   },
