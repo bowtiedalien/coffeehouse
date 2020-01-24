@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:challenge_1/resources/models.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
+import 'model_class.dart';
 
 String paymentMethod; //stores the payment method chosen
+Order someOrder;
 
 bool plusClicked = false;
 bool minusClicked = false;
@@ -94,8 +96,9 @@ class ShoppingCart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-        create: (context) => ShoppingCartModel(),
-        child: MyShoppingCart(),);
+      create: (context) => ShoppingCartModel(),
+      child: MyShoppingCart(),
+    );
   }
 }
 
@@ -110,16 +113,17 @@ class _MyShoppingCartState extends State<MyShoppingCart> {
       orderLoading = true;
     });
     DocumentReference documentReference =
-    Firestore.instance.collection('order').document('nYgTyxjkpQAOKjULyK2m');
+        Firestore.instance.collection('order').document('nYgTyxjkpQAOKjULyK2m');
     await documentReference.get().then((datasnapshot) {
       if (datasnapshot.exists) {
-//        print(datasnapshot.data['order list']);
+//      print(datasnapshot.data['order list']);
         print(datasnapshot.data['order list'][0]);
         //there is something wrong here
         //orders[0]['coffee name'] = datasnapshot.data['order list'][0]['coffee name'].toString();
-        print('before problematic');
-        orders.add({'coffee name': datasnapshot.data['order list'][0]['coffee name']});
-        print('after problematic');
+        print('before problematic'); //debugging
+        orders.add(
+            {'coffee name': datasnapshot.data['order list'][0]['coffee name']});
+        print('after problematic'); //debugging
         orderName = orders[0]['coffee name'];
         setState(() {
           orderLoading = false;
@@ -142,117 +146,119 @@ class _MyShoppingCartState extends State<MyShoppingCart> {
 //    print('orders from Shopping Cart: ' + orders[0]['coffee name']);
 //    print('is order loading: ' + orderLoading.toString());
 
-    final model = Provider.of<ShoppingCartModel>(
-        context);
+    final model = Provider.of<ShoppingCartModel>(context);
     if (model.orderFinalised)
-      return orderInfoFinalised(_addressController.text, paymentMethod, 10, 2);
+      return OrderInfoFinalised(_addressController.text, paymentMethod, 10, 2);
     else
       return orderLoading
-        ? Center(child: CircularProgressIndicator())
-        : SingleChildScrollView(
-      child: Column(
-        children: <Widget>[
-          Container(
-            padding: EdgeInsets.only(top: 10, left: 10),
-            child: Text('Shopping Cart',
-                style:
-                TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
-            alignment: Alignment.topLeft,
-          ),
-          orderTiles(), //a loop that calls all orders from firebase
-          Divider(),
-          Container(
-            child: Column(
-              children: <Widget>[
-                cardTitle('Shipping Address'),
-                Container(
-                  padding: EdgeInsets.all(20),
-                  width: 240,
-                  height: 100,
-                  decoration: curvedEdge,
-                  child: TextField(
-                    controller: _addressController,
-                    keyboardType: TextInputType.multiline,
-                    maxLines: 5, //max number of lines the user can enter
+          ? Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: Column(
+                children: <Widget>[
+                  Container(
+                    padding: EdgeInsets.only(top: 10, left: 10),
+                    child: Text('Shopping Cart',
+                        style: TextStyle(
+                            fontSize: 25, fontWeight: FontWeight.bold)),
+                    alignment: Alignment.topLeft,
                   ),
-                ),
-                cardTitle('Payment Method'),
-                Container(
-                  decoration: dropDownButtonDecoration,
-                  padding: EdgeInsets.only(left: 7),
-                  margin: EdgeInsets.all(3),
-                  height: 35,
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: paymentMethod,
-                      //the default value of the button
-                      onChanged: (String value) {
-                        setState(() {
-                          paymentMethod = value;
-                        });
-                      },
-                      //understand this part > we are taking a string array, mapping it to another type, then converting it to a list?
-                      items: <String>['Credit Card', 'At the door']
-                          .map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                      hint: Text('choose payment'),
+                  OrderTiles(), //a loop that calls all orders from firebase
+                  Divider(),
+                  Container(
+                    child: Column(
+                      children: <Widget>[
+                        cardTitle('Shipping Address'),
+                        Container(
+                          padding: EdgeInsets.all(20),
+                          width: 240,
+                          height: 100,
+                          decoration: curvedEdge,
+                          child: TextField(
+                            controller: _addressController,
+                            keyboardType: TextInputType.multiline,
+                            maxLines:
+                                5, //max number of lines the user can enter
+                          ),
+                        ),
+                        cardTitle('Payment Method'),
+                        Container(
+                          decoration: dropDownButtonDecoration,
+                          padding: EdgeInsets.only(left: 7),
+                          margin: EdgeInsets.all(3),
+                          height: 35,
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: paymentMethod,
+                              //the default value of the button
+                              onChanged: (String value) {
+                                setState(() {
+                                  paymentMethod = value;
+                                });
+                              },
+                              //understand this part > we are taking a string array, mapping it to another type, then converting it to a list?
+                              items: <String>[
+                                'Credit Card',
+                                'At the door'
+                              ].map<DropdownMenuItem<String>>((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value),
+                                );
+                              }).toList(),
+                              hint: Text('choose payment'),
+                            ),
+                          ),
+                        ),
+                        Divider(),
+                        priceReport(10.0, 2.0),
+                        SizedBox(
+                          height: 30,
+                        ),
+                        coffeeButton('Proceed to Checkout', () {
+                          //add verification for payment type and address - user HAS to enter them
+                          if (_addressController.text == null ||
+                              _addressController.text == "" ||
+                              paymentMethod == null) {
+                            print('textfield empty');
+                            showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text(
+                                      'You need to enter both an address and a payment method!',
+                                    ),
+                                  );
+                                });
+                          } else {
+                            final model = Provider.of<ShoppingCartModel>(
+                                context,
+                                listen: false); //set listen: false when the consumer will only use the methods of the model and will not update.
+//                    sendOrderInfo();
+                            sendOrderList();
+                            model.finaliseOrder();
+                          }
+                          setState(() {
+                            //refresh page to make it read-only
+                          });
+                        }),
+                      ],
                     ),
                   ),
-                ),
-                Divider(),
-                priceReport(10.0, 2.0),
-                SizedBox(
-                  height: 30,
-                ),
-                coffeeButton('Proceed to Checkout', () {
-                  //add verification for payment type and address - user HAS to enter them
-                  if (_addressController.text == null ||
-                      _addressController.text == "" ||
-                      paymentMethod == null) {
-                    print('textfield empty');
-                    showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: Text(
-                              'You need to enter both an address and a payment method!',
-                            ),
-                          );
-                        });
-                  } else {
-                    final model = Provider.of<ShoppingCartModel>(
-                        context);
-//                    sendOrderInfo();
-                    model.finaliseOrder();
-                  }
-                  setState(() {
-                    //refresh page to make it read-only
-                  });
-                }),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+                ],
+              ),
+            );
   }
 }
 
-
-class orderTiles extends StatefulWidget {
+class OrderTiles extends StatefulWidget {
   @override
-  _orderTilesState createState() => _orderTilesState();
+  _OrderTilesState createState() => _OrderTilesState();
 }
 
-class _orderTilesState extends State<orderTiles> {
+class _OrderTilesState extends State<OrderTiles> {
   @override
   Widget build(BuildContext context) {
-    final model = Provider.of<ShoppingCartModel>(
-        context);
+    final model = Provider.of<ShoppingCartModel>(context);
 
     void add() {
       _orderQuantity++;
@@ -280,17 +286,19 @@ class _orderTilesState extends State<orderTiles> {
                   background: Container(
                     color: bgColor,
                   ),
-                  onDismissed: (direction){
+                  onDismissed: (direction) {
                     setState(() {
-                      orders.removeAt(index); //remove the order from the orders list
+                      orders.removeAt(
+                          index); //remove the order from the orders list
                     });
                   },
                   child: Row(
                     children: <Widget>[
                       Image(
                         image: AssetImage(
-                          coffeeImages[coffeeNames.indexOf(orders[index]['coffee name'])],
-                           ),
+                          coffeeImages[coffeeNames
+                              .indexOf(orders[index]['coffee name'])],
+                        ),
                         width: 50,
                       ),
                       Container(
@@ -354,19 +362,19 @@ class _orderTilesState extends State<orderTiles> {
   }
 }
 
-class orderInfoFinalised extends StatefulWidget {
+class OrderInfoFinalised extends StatefulWidget {
   final address;
   final payment;
   double subtotal;
   double shipp;
 
-  orderInfoFinalised(this.address, this.payment, this.subtotal, this.shipp);
+  OrderInfoFinalised(this.address, this.payment, this.subtotal, this.shipp);
 
   @override
-  _orderInfoFinalisedState createState() => _orderInfoFinalisedState();
+  _OrderInfoFinalisedState createState() => _OrderInfoFinalisedState();
 }
 
-class _orderInfoFinalisedState extends State<orderInfoFinalised> {
+class _OrderInfoFinalisedState extends State<OrderInfoFinalised> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -379,7 +387,7 @@ class _orderInfoFinalisedState extends State<orderInfoFinalised> {
                   style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
               alignment: Alignment.topLeft,
             ),
-            orderTiles(), //a loop that calls all orders from firebase
+            OrderTiles(), //a loop that calls all orders from firebase
             Divider(),
             Container(
               child: Column(
@@ -449,18 +457,37 @@ class _orderInfoFinalisedState extends State<orderInfoFinalised> {
 //      .document()
 //      .setData({
 //    //TODO: how to dynamically create a subcollection
-//    //'order list': [{'coffee name': orderName, 'cup size': cupSizeSelected, 'flavour': flavourSelected}],
 //    'address': _addressController.text,
 //    'payment method': paymentMethod,
 //    'order quantity': _orderQuantity,
 //  });
 //}
 
-class ShoppingCartModel with ChangeNotifier{
+void sendOrderList() {
+  Firestore.instance
+      .collection('order')
+      .document('nYgTyxjkpQAOKjULyK2m')
+      .updateData(
+    {
+      'orders': [
+        {
+          'coffee_name': orderName[0],
+          'cup_size': cupSizeSelected,
+          'flavour': flavourSelected
+        },
+        {
+
+        },
+      ],
+    },
+  );
+}
+
+class ShoppingCartModel with ChangeNotifier {
   bool orderFinalised = false;
 
   void finaliseOrder() {
-      orderFinalised = true;
-      notifyListeners();
+    orderFinalised = true;
+    notifyListeners();
   }
 }

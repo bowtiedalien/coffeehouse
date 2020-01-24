@@ -4,9 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
 
 bool profilePageIsFetched = false;
-//GLOBAL
 String userDocID =
-    'QgEqFX4AklQfLY85jnDV'; //stores all the info of the current logged in user
+    'QgEqFX4AklQfLY85jnDV'; //stores all the info of the current logged in user, with a default value
 
 //declare all variables and functions here-------------------
 String userName; //this gets set once
@@ -55,6 +54,22 @@ void getFlavours() {
   ));
 }
 
+Future getUsers(String enteredEmail) async {
+  final QuerySnapshot result =
+  await Firestore.instance.collection('users').getDocuments();
+  List<DocumentSnapshot> documents = result.documents;
+  if (documents.isNotEmpty) {
+    documents.forEach((data) {
+      if (data.data['email'] == enteredEmail) {
+        print(data.documentID); //for debugging
+        userDocID = data.documentID; //global for the whole application
+      } else {
+        print('retrieving data');
+      }
+    });
+  }
+}
+
 List<String> coffeeNames = [
   'Affogato',
   'Cafe Late',
@@ -80,6 +95,7 @@ List<String> coffeeImages = [
   'vienna.png'
 ];
 List<int> coffeePrices = [10, 3, 5, 5, 5, 2, 10, 2, 5, 10];
+
 List<String> coffeeDesc = [
   'coffee with ice cream',
   'coffee with milk and drawing on top',
@@ -105,20 +121,4 @@ List<String> coffeeIng = [
   'coffee, ice cream, nuts'
 ];
 
-Future getUsers(String enteredEmail) async {
-  final QuerySnapshot result =
-      await Firestore.instance.collection('users').getDocuments();
-  List<DocumentSnapshot> documents = result.documents;
-  if (documents.isNotEmpty) {
-    //wait until you have the data
-    documents.forEach((data) {
-      if (data.data['email'] == enteredEmail) {
-        print(data.documentID);
-        userDocID = data.documentID;
-        //return the document number
-      } else {
-        print('retrieving data');
-      }
-    });
-  }
-}
+

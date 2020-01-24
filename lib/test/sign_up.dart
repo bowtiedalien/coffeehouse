@@ -1,8 +1,8 @@
-import 'package:challenge_1/test/profilePage.dart';
+import 'package:challenge_1/test/profile_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:challenge_1/resources/models.dart';
-import 'SignIn.dart';
+import 'sign_in.dart';
 import 'package:challenge_1/main.dart';
 import 'package:provider/provider.dart';
 

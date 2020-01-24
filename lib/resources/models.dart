@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 //custom brown color
-const bgColor = const Color(0xFF442C0C);
+const bgColor = Color(0xFF442C0C);
 //or is this better: #7C4C2C ?
 
 BoxDecoration dropDownButtonDecoration = BoxDecoration(
@@ -29,7 +29,7 @@ Widget coffeeButton(String title, onclick()) {
     color: bgColor,
     elevation: 3,
     child: Text(
-      'Proceed to Checkout',
+      title,
       style: TextStyle(color: Colors.white),
     ),
     onPressed: () {

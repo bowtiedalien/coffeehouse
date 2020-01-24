@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 
 void main() {
   //WidgetsFlutterBinding.ensureInitialized(); //initialises flutter's framework - need to use if I'm using systemChannels before runApp()
-
   runApp(MaterialApp(
     theme: ThemeData(primaryColor: bgColor),
     debugShowCheckedModeBanner: false,

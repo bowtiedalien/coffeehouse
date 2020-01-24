@@ -14,6 +14,14 @@ class SignIn extends StatefulWidget {
 }
 
 class _SignInState extends State<SignIn> {
+
+//  @override
+//  void dispose() {
+//    // TODO: implement dispose
+//    emailController.dispose();
+//    passwordController.dispose();
+//    super.dispose();
+//  }
   @override
   Widget build(BuildContext context) {
     final mymodel = Provider.of<MyModel>(context);
@@ -23,6 +31,7 @@ class _SignInState extends State<SignIn> {
       child: Container(
         margin: EdgeInsets.all(20),
         child: Column(
+          mainAxisSize: MainAxisSize.min, //so it doesn't take infinite height
           children: <Widget>[
             TextField(
                 controller: emailController,

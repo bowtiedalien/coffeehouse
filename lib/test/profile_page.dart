@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/rendering.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'SignUp.dart';
-import 'SignIn.dart';
+import 'sign_up.dart';
 import 'package:challenge_1/main.dart';
 import 'package:provider/provider.dart';
 
@@ -30,7 +29,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (myModel.userIsSignedIn)
       return MyProfilePage();
     else
-      return SignInSignUp(); //can return SignUp instead. Which is more instinctive?
+      return SignInSignUp();
   }
 }
 
@@ -44,7 +43,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
   bool loading = false;
 
   //when profile page info is updated, send new data to firebase
-  Widget updateProfileInfo() {
+  void updateProfileInfo() {
     Firestore.instance.collection('users').document(userDocID).updateData({
       'FirstName': userName.contains(' ')?(userName).substring(0, userName.toString().indexOf(' ')):userName,
       'LastName': userName.contains(' ')?(userName)
@@ -120,6 +119,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
         print(position);
       });
     });
+    //this prevents info from being sent to Firestore when location has not been retrieved. Unnecessary error catching.
 //        .catchError((e) {
 //      print(e);
 //    });
@@ -296,7 +296,6 @@ class _MyProfilePageState extends State<MyProfilePage> {
             ],
           );
   }
-
 }
 
 //shows text fields with user info

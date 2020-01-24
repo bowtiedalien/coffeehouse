@@ -3,30 +3,31 @@ import 'package:challenge_1/resources/models.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'homepage.dart';
-import 'profilePage.dart';
-import 'ShoppingCart.dart';
+import 'profile_page.dart';
+import 'shopping_cart.dart';
 import 'dart:async';
-
 
 FontWeight homeScreenTitleFontWeight;
 Color homeScreenTitleColor;
+
 //MyApp -- Splash Screen
 class MyApp extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-  Widget changeState(){
+  Widget changeState() {
     changestate();
     return Container();
   }
-  void changestate()
-  {
+
+  void changestate() {
     setState(() {
       homeScreenTitleFontWeight = FontWeight.bold;
       homeScreenTitleColor = Colors.white;
     });
   }
+
   //splash screen effect - wait for 3 seconds then redirect to HomePage
   @override
   void initState() {
@@ -46,6 +47,7 @@ class _MyAppState extends State<MyApp> {
       },
     );
   }
+
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context)
