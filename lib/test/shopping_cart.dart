@@ -16,7 +16,7 @@ bool orderLoading;
 var _addressController = TextEditingController();
 String orderName;
 
-var orders = <Map>[]; //create an empty list of map
+var orders = <Map<String, dynamic>>[]; //create an empty list of map
 
 Widget priceReport(double subt, double shp) {
   return Column(children: <Widget>[
@@ -108,31 +108,36 @@ class MyShoppingCart extends StatefulWidget {
 }
 
 class _MyShoppingCartState extends State<MyShoppingCart> {
+  //TODO: get all documents of all orders from here, and display them all in the ListView. do not call a specific document like this.
+  //TODO: add the data you get from Firestore to the array called orders
   Future getOrderList() async {
+    int i=0;
     setState(() {
       orderLoading = true;
     });
-    DocumentReference documentReference =
-        Firestore.instance.collection('order').document('nYgTyxjkpQAOKjULyK2m');
-    await documentReference.get().then((datasnapshot) {
-      if (datasnapshot.exists) {
-//      print(datasnapshot.data['order list']);
-        print(datasnapshot.data['order list'][0]);
-        //there is something wrong here
-        //orders[0]['coffee name'] = datasnapshot.data['order list'][0]['coffee name'].toString();
-        print('before problematic'); //debugging
-        orders.add(
-            {'coffee name': datasnapshot.data['order list'][0]['coffee name']});
-        print('after problematic'); //debugging
-        orderName = orders[0]['coffee name'];
+    final QuerySnapshot allDocs = await Firestore.instance.collection('order')
+        .getDocuments();
+    List<DocumentSnapshot> docs = allDocs.documents;
+    if (docs.isNotEmpty) {
+      docs.forEach((d) {
+        print("printing name and price ..");
+        print(d.data['orders'][0]['coffee_name']);
+        print(d.data['price']);
+        print('length of orders list: ' + '${orders.length}');
+//        orders.add(
+//            {'name': d.data['orders'][0]['name'], 'price': d.data['price']});
+        orders.insert(i, {'name': d.data['orders'][0]['coffee_name'], 'price': d.data['price']});
+        print('length of orders list: ' + '${orders.length}');
         setState(() {
           orderLoading = false;
           print(orderLoading);
         });
-      } else {
-        print('loading');
-      }
-    });
+        i++;
+      });
+    }
+    else {
+      print('loading');
+    }
   }
 
   @override
@@ -143,9 +148,6 @@ class _MyShoppingCartState extends State<MyShoppingCart> {
 
   @override
   Widget build(BuildContext context) {
-//    print('orders from Shopping Cart: ' + orders[0]['coffee name']);
-//    print('is order loading: ' + orderLoading.toString());
-
     final model = Provider.of<ShoppingCartModel>(context);
     if (model.orderFinalised)
       return OrderInfoFinalised(_addressController.text, paymentMethod, 10, 2);
@@ -232,7 +234,8 @@ class _MyShoppingCartState extends State<MyShoppingCart> {
                           } else {
                             final model = Provider.of<ShoppingCartModel>(
                                 context,
-                                listen: false); //set listen: false when the consumer will only use the methods of the model and will not update.
+                                listen:
+                                    false); //set listen: false when the consumer will only use the methods of the model and will not update.
 //                    sendOrderInfo();
                             sendOrderList();
                             model.finaliseOrder();
@@ -264,7 +267,6 @@ class _OrderTilesState extends State<OrderTiles> {
       _orderQuantity++;
       setState(() {});
     }
-
     void minus() {
       if (_orderQuantity != 0) _orderQuantity--;
       setState(() {});
@@ -273,16 +275,24 @@ class _OrderTilesState extends State<OrderTiles> {
     return Container(
       padding: EdgeInsets.all(20),
       margin: EdgeInsets.only(left: 20, right: 20),
-      height: 120,
+      height: 120 * orders.length.toDouble(),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           Expanded(
             child: ListView.builder(
-              itemCount: orders.length, //orders.length,
+              itemCount: orders.length,
               itemBuilder: (context, int index) {
+                print('the current index: ' + '$index');
+                print('orders[index][name]: ');
+                print('index 0 of orders[]: ');
+                print(orders[0]['name']);
+                print(orders[index]['name']); //problem here
+                print('the index of the current coffee name in the coffeeNames list: ');
+                print(coffeeNames.indexOf(orders[index]['name']));
+                
                 return Dismissible(
-                  key: Key(orders[index].toString()),
+                  key: Key(orders[index].toString()), //I don't know if I'm doing this correctly
                   background: Container(
                     color: bgColor,
                   ),
@@ -297,7 +307,7 @@ class _OrderTilesState extends State<OrderTiles> {
                       Image(
                         image: AssetImage(
                           coffeeImages[coffeeNames
-                              .indexOf(orders[index]['coffee name'])],
+                              .indexOf(orders[index]['name'])],
                         ),
                         width: 50,
                       ),
@@ -306,8 +316,8 @@ class _OrderTilesState extends State<OrderTiles> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
-                            Text(orders[0]['coffee name']),
-                            Text('\$15'),
+                            Text(orders[index]['name']), //TODO: this is index 0 only right now because I still haven't figured out how to add more than one order in the list anyway, so it was always have just one element. Fix it later to be a loop when you figure out how to add more than one order
+                            Text(orders[index]['price'].toString()),
                             Container(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(30),
@@ -464,26 +474,21 @@ class _OrderInfoFinalisedState extends State<OrderInfoFinalised> {
 //}
 
 void sendOrderList() {
-  Firestore.instance
-      .collection('order')
-      .document('nYgTyxjkpQAOKjULyK2m')
-      .updateData(
-    {
-      'orders': [
-        {
-          'coffee_name': orderName[0],
-          'cup_size': cupSizeSelected,
-          'flavour': flavourSelected
-        },
-        {
-
-        },
-      ],
-    },
-  );
+  //create a new document in Firestore, add to it the order information (coffee name, cup size, and flavour)
+  Firestore.instance.collection('order').document().setData({
+    'orders': [
+      {
+        'coffee_name': orderName,
+        'cup_size': cupSizeSelected,
+        'flavour': flavourSelected,
+      },
+    ],
+  });
 }
 
 class ShoppingCartModel with ChangeNotifier {
+  Order myOrder;
+
   bool orderFinalised = false;
 
   void finaliseOrder() {

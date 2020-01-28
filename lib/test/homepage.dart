@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:challenge_1/resources/models.dart';
+import 'package:challenge_1/test/model_class.dart';
+import 'package:challenge_1/test/shopping_cart.dart';
 import 'package:flutter/material.dart';
 import 'package:challenge_1/resources/data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -23,13 +27,13 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Container(
         margin: EdgeInsets.fromLTRB(0, 5, 0, 0),
         child: ListView.builder(
-            itemCount: coffeeNames.length,
+            itemCount: productList.length,
             itemBuilder: (BuildContext context, int index) {
               return Container(
                 margin: EdgeInsets.only(top: 0, bottom: 5),
                 child: ExpansionTile(
-                  title: Text(i <= (coffeeNames.length)
-                      ? coffeeNames[i = i + 1]
+                  title: Text(i <= (productList.length)
+                      ? productList[i = i + 1].toMap()['name']
                       : null),
                   leading: Container(
                     margin: EdgeInsets.only(top: 10),
@@ -39,25 +43,25 @@ class _MyHomePageState extends State<MyHomePage> {
                       fit: BoxFit.contain,
                       child: Image(
                         image: AssetImage(
-                          i <= (coffeeNames.length) ? coffeeImages[i] : null,
+                          i <= (productList.length) ? productList[i].picture : null,
                         ),
                       ),
                     ),
                   ),
                   children: <Widget>[
                     ListTile(
-                      title: Text(coffeeNames[i]),
+                      title: Text(productList[i].toMap()['name']),
                       trailing: Text(
-                        '\$' + coffeePrices[i].toString(),
+                        '\$' + productList[i].price.toString(),
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
                     Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: <Widget>[
-                        Text(i <= (coffeeNames.length) ? coffeeDesc[i] : null),
+                        Text(i <= (productList.length) ? productList[i].description : null),
                         Text('ingredients: ' +
-                            (i <= (coffeeNames.length) ? coffeeIng[i] : null)),
+                            (i <= (productList.length) ? productList[i].ingredients : null)),
                       ],
                     ),
                     ListTile(
@@ -140,18 +144,6 @@ class _MyHomePageState extends State<MyHomePage> {
                             ),
                             RaisedButton(
                                 onPressed: () {
-                                  //TODO: uncomment when you figure out how to dynamically create an array of maps
-//                                  Firestore.instance
-//                                      .collection('order')
-//                                      .document('nYgTyxjkpQAOKjULyK2m')
-//                                      .updateData({
-//                                    'order list': [
-//                                      coffeeNames[index],
-//                                      cupSizeSelected,
-//                                      flavourSelected
-//                                    ],
-//                                  });
-
                                   if (cupSizeSelected == null) {
                                     print('no customisation was chosen');
                                     showDialog(
@@ -164,6 +156,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                           );
                                         });
                                   } else {
+                                    //TODO: send data to the order list in Firestore
+                                    orderName = productList[i].toMap()['name'];
+                                    sendOrderList();
                                     showDialog(
                                         context: context,
                                         builder: (context) {
@@ -203,3 +198,31 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
+
+List<Product> productList = [];
+
+void getAvailableProducts() async{
+  final QuerySnapshot result = await Firestore.instance.collection('product').getDocuments();
+  List<DocumentSnapshot> documents = result.documents;
+  if(documents.isNotEmpty){
+    documents.forEach((data){
+      print('document ID: ');
+      print(data.documentID);
+      print('data.data: ' + '${data.data}');
+
+      productList.add(Product.fromJson(json.encode(data.data))); //here, we are creating dynamic objects. Just like in C++, you would use
+      // object[0] = new Product(). In Dart 1, you would use 'new' keyword as well, but in Dart 2, it isn't required anymore.
+      print('element of productlist: ');
+    });
+    for (Product product in productList){
+      print('product info: ');
+      print('Look under here: ');
+//      print(productList[0].toMap()['name']);
+      print(product.toMap()); //this prints all the values of the variables inside Product class, defined inside toMap()
+    }
+
+  }
+
+}
+

@@ -6,6 +6,7 @@ import 'homepage.dart';
 import 'profile_page.dart';
 import 'shopping_cart.dart';
 import 'dart:async';
+import 'homepage.dart';
 
 FontWeight homeScreenTitleFontWeight;
 Color homeScreenTitleColor;
@@ -16,6 +17,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+
   Widget changeState() {
     changestate();
     return Container();
@@ -50,6 +52,8 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    getAvailableProducts(); //debugging
+
     double screenWidth = MediaQuery.of(context)
         .size
         .width; //save screen dimensions in a variable

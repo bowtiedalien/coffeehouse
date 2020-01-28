@@ -41,3 +41,17 @@ class MyModel with ChangeNotifier {
     notifyListeners();
   }
 }
+
+var text = [1,2,3,4];
+class Whatever extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        child: Column(
+        children: List.generate(text.length,(index){
+      return Text(text[index].toString());
+    }),
+    ),
+    );
+  }
+}
