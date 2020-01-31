@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'test/widget_test.dart';
 import 'resources/models.dart';
 import 'package:flutter/services.dart';
@@ -21,7 +22,14 @@ void main() {
 
 class MyModel with ChangeNotifier {
   //setters and getters:
-  bool _userIsSignedIn = FirebaseAuth.instance.currentUser() != null; //if the currentUser is not null, set userIsSignedIn to true
+  bool _userIsSignedIn = FirebaseAuth.instance.currentUser() !=
+      null; //if the currentUser is not null, set userIsSignedIn to true
+
+  bool signOutLoading = false;
+  void printFoo() async {
+    print('from MyModel: is user signed in? ' + '$_userIsSignedIn');
+    print('currentUser:' + '${await FirebaseAuth.instance.currentUser()}');
+  }
 
   bool get userIsSignedIn {
     return _userIsSignedIn;
@@ -36,8 +44,19 @@ class MyModel with ChangeNotifier {
 
   bool userHasAccount = false;
 
-  void signOut() {
-    userIsSignedIn = false;
+  void signOut() async {
+
+    SharedPreferences pref = await SharedPreferences.getInstance();
+//    pref.setString('userID', ''); //discarding the value of userID
+    pref.remove('userID');
+    pref.clear();
+
+    signOutLoading = true;
+    notifyListeners();
+    FirebaseAuth.instance.signOut().then((value) {
+      userIsSignedIn = false;
+      signOutLoading = false;
+    });
     notifyListeners();
   }
 

@@ -24,17 +24,21 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-
   @override
   Widget build(BuildContext context) {
-
     final myModel = Provider.of<MyModel>(
         context); //this makes the ProfilePage act as a consumer
 
-    if (myModel.userIsSignedIn)
+    if (myModel.signOutLoading) {
+      return CircularProgressIndicator();
+    } else {
+      if (myModel.userIsSignedIn && userID != '' && userID != null) {
+        print('if statement entered and userID = ' + '$userID');
+        print('userIsSignedIn from ProfilePage():' + '${myModel.userIsSignedIn}');
         return MyProfilePage();
-    else
-      return SignInSignUp();
+      } else
+        return SignInSignUp();
+    }
   }
 }
 
@@ -81,12 +85,14 @@ class _MyProfilePageState extends State<MyProfilePage> {
   //get user information from Firebase
   Future getUserInfo() async {
     setState(() {
+      profilePageIsFetched = false;
       loading = true;
     });
-    if(userID == null || userID == '') {
+    if (userID == null || userID == '') {
       await fetchUserIDAfterRestart();
     }
-    await findUser(userID); //await here prevents next line from executing until getUsers returns its value.
+    await findUser(
+        userID); //await here prevents next line from executing until getUsers returns its value.
     final result =
         await Firestore.instance.collection('users').document(userID).get();
     print("getUserInfo is accessing document id: " + userID);
@@ -96,8 +102,8 @@ class _MyProfilePageState extends State<MyProfilePage> {
         userName = result.data['FirstName'] + ' ' + result.data['LastName'];
         userAddress = result.data['address'];
         userGender = result.data['gender'];
-        userPhone = result.data['phone number'];
-        userImage = result.data['profile picture'];
+        userPhone = result.data['phone_number'];
+        userImage = result.data['profile_picture'];
         userBirthdate = result.data['birthdate'];
       } else {
         userName = "User 1";
@@ -139,6 +145,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
   @override
   void initState() {
     getUserInfo();
+    print('initSatte');
     super.initState();
   }
 
@@ -161,7 +168,10 @@ class _MyProfilePageState extends State<MyProfilePage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
                         Text(
-                          'Hello, ' + (userName.contains(' ')?'${userName.toString().substring(0, userName.toString().indexOf(' '))}':userName) +
+                          'Hello, ' +
+                              (userName.contains(' ')
+                                  ? '${userName.toString().substring(0, userName.toString().indexOf(' '))}'
+                                  : userName) +
                               '!',
                           style: TextStyle(
                               fontSize: 20, fontWeight: FontWeight.w500),
@@ -210,10 +220,10 @@ class _MyProfilePageState extends State<MyProfilePage> {
                       : userInfoBox(
                           'Phone Number', userPhone, _phoneController, 40),
                   editable
-                      ? userInfoBoxEditable('Date of Birth', _dobController,
-                          userBirthdate, 40)
-                      : userInfoBox('Date of Birth', userBirthdate,
-                          _dobController, 40),
+                      ? userInfoBoxEditable(
+                          'Date of Birth', _dobController, userBirthdate, 40)
+                      : userInfoBox(
+                          'Date of Birth', userBirthdate, _dobController, 40),
                 ],
               ),
               Container(

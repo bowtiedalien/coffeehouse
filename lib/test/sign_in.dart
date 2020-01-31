@@ -64,15 +64,19 @@ class _SignInState extends State<SignIn> {
               SizedBox(
                 width: screenWidth - 20,
                 height: 40,
-                child: RaisedButton(
-                  child: Text(
-                    'SIGN IN',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  color: bgColor,
-                  onPressed: () {
-                    signIn();
-                  },
+                child: Builder(
+                  builder: (context) {
+                    return RaisedButton(
+                      child: Text(
+                        'SIGN IN',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      color: bgColor,
+                      onPressed: () {
+                        signIn(context);
+                      },
+                    );
+                  }
                 ),
               ),
               SizedBox(
@@ -107,7 +111,7 @@ class _SignInState extends State<SignIn> {
     );
   }
 
-  Future<void> signIn() async {
+  Future<void> signIn(BuildContext context) async {
     final mymodel = Provider.of<MyModel>(context, listen: false);
     final formState = _formKey.currentState;
     if (formState.validate()) {
@@ -122,6 +126,7 @@ class _SignInState extends State<SignIn> {
         userID = user.uid; //save User Id in a var
         if(userID!=null){
           mymodel.userIsSignedIn = true;
+          await saveUserID();
         }
         print('signIn() says userID is ' + userID);
           setState(() {

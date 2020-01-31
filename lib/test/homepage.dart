@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:challenge_1/resources/models.dart';
 import 'package:challenge_1/test/model_class.dart';
 import 'package:challenge_1/test/shopping_cart.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:challenge_1/resources/data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -216,7 +217,6 @@ class _MyHomePageState extends State<MyHomePage> {
 List<Product> productList = [];
 
 void getAvailableProducts() async{
-
   final QuerySnapshot result = await Firestore.instance.collection('product').getDocuments();
   List<DocumentSnapshot> documents = result.documents;
   print('productList.length before filling up: ');

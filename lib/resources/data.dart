@@ -16,8 +16,9 @@ String userID; //for accessing user's authentication id
 
 Future fetchUserIDAfterRestart() async{
   SharedPreferences prefs = await SharedPreferences.getInstance();
+
   userID = prefs.getString('userID');
-  if(userID==null)
+  if(userID==null || userID == '')
     print('user ID is still empty');
   else
     print('user ID has been fetched');
