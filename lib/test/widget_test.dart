@@ -1,12 +1,18 @@
 import 'package:challenge_1/main.dart';
 import 'package:challenge_1/resources/models.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'homepage.dart';
 import 'profile_page.dart';
 import 'shopping_cart.dart';
 import 'dart:async';
+import 'package:challenge_1/resources/data.dart';
 import 'homepage.dart';
+
+
+
+bool getAvailableProductsCalled = false;
 
 FontWeight homeScreenTitleFontWeight;
 Color homeScreenTitleColor;
@@ -52,12 +58,17 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    getAvailableProducts(); //debugging
+    final mymodel = Provider.of<MyModel>(context, listen: false);
 
+    if(!getAvailableProductsCalled) {
+      getAvailableProducts(); //debugging
+      getAvailableProductsCalled = true;
+    }
     double screenWidth = MediaQuery.of(context)
         .size
         .width; //save screen dimensions in a variable
     double screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       backgroundColor: bgColor,
       body: Column(
@@ -74,10 +85,6 @@ class _MyAppState extends State<MyApp> {
               duration: const Duration(milliseconds: 500),
               child: Text(
                 "Welcome to" + "\nCoffee House",
-//                style: TextStyle(
-//                    fontWeight: FontWeight.w100,
-//                    fontSize: 20,
-//                    color: Colors.white),
               ),
             ),
           ),

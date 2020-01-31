@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/rendering.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'sign_up.dart';
 import 'package:challenge_1/main.dart';
 import 'package:provider/provider.dart';
+import 'package:challenge_1/resources/data.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 bool editable =
     true; //this decides weather info appears as readonly or editable text fields
@@ -21,13 +24,15 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+
   @override
   Widget build(BuildContext context) {
+
     final myModel = Provider.of<MyModel>(
         context); //this makes the ProfilePage act as a consumer
 
     if (myModel.userIsSignedIn)
-      return MyProfilePage();
+        return MyProfilePage();
     else
       return SignInSignUp();
   }
@@ -43,21 +48,21 @@ class _MyProfilePageState extends State<MyProfilePage> {
   bool loading = false;
 
   //when profile page info is updated, send new data to firebase
-  void updateProfileInfo() {
-    Firestore.instance.collection('users').document(userDocID).updateData({
-      'FirstName': userName.contains(' ')?(userName).substring(0, userName.toString().indexOf(' ')):userName,
-      'LastName': userName.contains(' ')?(userName)
-          .substring(userName.toString().indexOf(' '), userName.length):'',
-      'address': userAddress,
-      'birthdate': userBirthdate,
-      'gender': userGender,
-      'phone number': userPhone,
-      'LAT': _currentPosition != null ? _currentPosition.latitude : '',
-      'LONG':
-          _currentPosition != null ? _currentPosition.longitude : '',
-    });
-    print('printing out the data');
-  }
+//  void updateProfileInfo() {
+//    Firestore.instance.collection('users').document(userDocID).updateData({
+//      'FirstName': userName.contains(' ')?(userName).substring(0, userName.toString().indexOf(' ')):userName,
+//      'LastName': userName.contains(' ')?(userName)
+//          .substring(userName.toString().indexOf(' '), userName.length):'',
+//      'address': userAddress,
+//      'birthdate': userBirthdate,
+//      'gender': userGender,
+//      'phone number': userPhone,
+//      'LAT': _currentPosition != null ? _currentPosition.latitude : '',
+//      'LONG':
+//          _currentPosition != null ? _currentPosition.longitude : '',
+//    });
+//    print('printing out the data');
+//  }
 
   //display "Hello, User!" at the top of screen
   Widget displayName() {
@@ -78,8 +83,13 @@ class _MyProfilePageState extends State<MyProfilePage> {
     setState(() {
       loading = true;
     });
+    if(userID == null || userID == '') {
+      await fetchUserIDAfterRestart();
+    }
+    await findUser(userID); //await here prevents next line from executing until getUsers returns its value.
     final result =
-        await Firestore.instance.collection('users').document(userDocID).get();
+        await Firestore.instance.collection('users').document(userID).get();
+    print("getUserInfo is accessing document id: " + userID);
     if (result.exists) {
       if (result.data['FirstName'] != null) {
         print(result.data['FirstName'] + ' ' + result.data['LastName']);
@@ -103,7 +113,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
         profilePageIsFetched = true;
       });
     } else
-      print('retrieving data');
+      print('can not access user info from getUserInfo()');
   }
 
   //retrieve longitude and latitude of user's location
@@ -137,6 +147,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
     final mymodel = Provider.of<MyModel>(
         context); //this makes the ProfilePage act as a consumer
 
+    print('MyProfilePage() says userIsSignedIn:' + '${mymodel.userIsSignedIn}');
     return loading && !profilePageIsFetched
         ? Center(child: CircularProgressIndicator())
         : ListView(
@@ -170,32 +181,6 @@ class _MyProfilePageState extends State<MyProfilePage> {
                   ),
                   Divider(),
                   //the image and 'edit my profile'
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: <Widget>[
-//                Container(
-//                  margin: EdgeInsets.only(left: 10),
-//                  //this should be at the far right with a margin
-//                  padding: EdgeInsets.zero,
-//                  width: 100,
-//                  height: 100,
-//                  child: Image(
-//                    image: AssetImage('coffee.png'),
-//                    fit: BoxFit.fitWidth,
-//                  ),
-//                ),
-//                Positioned(
-//                  left: 50,
-//                  child: OutlineButton(
-//                    onPressed: () => null,
-//                    child: Text(
-//                      "Edit profile",
-//                    ),
-//                  ),
-//                ),
-                      //),
-                    ],
-                  ),
                   editable
                       ? userInfoBoxEditable(
                           'Name', _nameController, userName, 40)
@@ -272,7 +257,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                         userBirthdate = _dobController.text;
                       }
                       print('before updating data');
-                      updateProfileInfo(); //send all information to firebase
+                      //updateProfileInfo(); //send all information to firebase
                     });
                   },
                 ),

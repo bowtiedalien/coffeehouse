@@ -2,10 +2,31 @@ import 'package:flutter/material.dart';
 import 'dart:core';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
+
+enum AuthStatus {
+  NOT_DETERMINED,
+  NOT_LOGGED_IN,
+  LOGGED_IN,
+}
 
 bool profilePageIsFetched = false;
-String userDocID =
-    'QgEqFX4AklQfLY85jnDV'; //stores all the info of the current logged in user, with a default value
+//String userDocID; //for accessing user's document in the database
+String userID; //for accessing user's authentication id
+
+Future fetchUserIDAfterRestart() async{
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  userID = prefs.getString('userID');
+  if(userID==null)
+    print('user ID is still empty');
+  else
+    print('user ID has been fetched');
+}
+
+Future saveUserID() async{
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setString('userID', userID);
+}
 
 //declare all variables and functions here-------------------
 String userName; //this gets set once
@@ -16,9 +37,7 @@ String userAddress;
 String userBirthdate;
 String userEmail = 'sarahxd62@yahoo.com';
 
-//List<String> shoppingBasket = []; //temporarily stores the coffee names ordered until I create the firebase collection
 int n = 2;
-List<List<String>> shoppingBasket = new List.generate(n, (i) => []);
 
 List<DropdownMenuItem<String>> cupSizes =
     []; //array that stores available cup sizes
@@ -54,20 +73,43 @@ void getFlavours() {
   ));
 }
 
-Future getUsers(String enteredEmail) async {
+//Future getUsers(String uid) async {
+//  final QuerySnapshot result =
+//  await Firestore.instance.collection('users').getDocuments();
+//  List<DocumentSnapshot> documents = result.documents;
+//  print('UID from getUsers(): ');
+//  print(uid);
+//  if (documents.isNotEmpty) {
+//    documents.forEach((data) {
+//      if (uid!=null && data.data['user_id'] == uid) {
+//        userDocID = data.documentID; //set value of the user document ID
+//        if(userDocID != null || userDocID != '')
+//          {
+//            print("UserDoc: " + userDocID);
+//            //Firestore.instance.collection('users').document(userDocID).updateData({'user_id': userID});
+//          }
+//      } else {
+//        print('retrieving data');
+//      }
+//    });
+//  }
+//}
+
+Future findUser(String uid) async{
   final QuerySnapshot result =
   await Firestore.instance.collection('users').getDocuments();
   List<DocumentSnapshot> documents = result.documents;
-  if (documents.isNotEmpty) {
-    documents.forEach((data) {
-      if (data.data['email'] == enteredEmail) {
-        print(data.documentID); //for debugging
-        userDocID = data.documentID; //global for the whole application
-      } else {
-        print('retrieving data');
+  if (documents.isNotEmpty){
+    documents.forEach((data){
+      if(data.documentID == uid){
+        print('findUser: user ID found in database');
+      }
+      else{
+        print('findUser: user ID not found in database');
       }
     });
   }
+
 }
 
 

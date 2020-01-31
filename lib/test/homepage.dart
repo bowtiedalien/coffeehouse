@@ -6,9 +6,14 @@ import 'package:challenge_1/test/shopping_cart.dart';
 import 'package:flutter/material.dart';
 import 'package:challenge_1/resources/data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final db = Firestore.instance;
 
+//var orderFlavours = [];
+//var orderFlavours = <Map<String,int>>[];
+Map<String, int> orderFlavours = {};
+var orderCupSizes = [];
 String cupSizeSelected;
 
 //MyHomePage is the main screen in the app - shows coffee options
@@ -22,7 +27,8 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     getCupSizes();
     getFlavours();
-    int i = -1;
+    print('productList.length before list: ');
+    print(productList.length);
     return Scaffold(
       body: Container(
         margin: EdgeInsets.fromLTRB(0, 5, 0, 0),
@@ -32,9 +38,7 @@ class _MyHomePageState extends State<MyHomePage> {
               return Container(
                 margin: EdgeInsets.only(top: 0, bottom: 5),
                 child: ExpansionTile(
-                  title: Text(i <= (productList.length)
-                      ? productList[i = i + 1].toMap()['name']
-                      : null),
+                  title: Text(productList[index].name),
                   leading: Container(
                     margin: EdgeInsets.only(top: 10),
                     width: 80,
@@ -43,25 +47,24 @@ class _MyHomePageState extends State<MyHomePage> {
                       fit: BoxFit.contain,
                       child: Image(
                         image: AssetImage(
-                          i <= (productList.length) ? productList[i].picture : null,
+                         productList[index].picture
                         ),
                       ),
                     ),
                   ),
                   children: <Widget>[
                     ListTile(
-                      title: Text(productList[i].toMap()['name']),
+                      title: Text(productList[index].name),
                       trailing: Text(
-                        '\$' + productList[i].price.toString(),
+                        '\$ ${productList[index].price}',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
                     Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: <Widget>[
-                        Text(i <= (productList.length) ? productList[i].description : null),
-                        Text('ingredients: ' +
-                            (i <= (productList.length) ? productList[i].ingredients : null)),
+                        Text(productList[index].description),
+                        Text(productList[index].ingredients),
                       ],
                     ),
                     ListTile(
@@ -128,13 +131,19 @@ class _MyHomePageState extends State<MyHomePage> {
                                   height: 35,
                                   child: DropdownButtonHideUnderline(
                                     child: DropdownButton<int>(
-                                      value: flavourSelected,
+                                      value: orderFlavours['${productList[index].name}'], //get the flavour attached to the name of this coffee order
                                       items: flavours,
                                       hint: Text('Add to flavours'),
                                       onChanged: (int value2) {
                                         setState(() {
+                                          String currentCoffee = productList[index].name;
+                                          print(orderFlavours[currentCoffee]);
                                           //calling this to update the state when an option is chosen
-                                          flavourSelected = value2;
+//                                          flavourSelected = value2;
+                                        orderFlavours[currentCoffee] = value2;
+                                          print(orderFlavours[currentCoffee]);
+                                          print(orderFlavours);
+                                          print('productList.length after list: ' + productList.length.toString());
                                         });
                                       },
                                     ),
@@ -145,7 +154,6 @@ class _MyHomePageState extends State<MyHomePage> {
                             RaisedButton(
                                 onPressed: () {
                                   if (cupSizeSelected == null) {
-                                    print('no customisation was chosen');
                                     showDialog(
                                         context: context,
                                         builder: (BuildContext context) {
@@ -157,7 +165,12 @@ class _MyHomePageState extends State<MyHomePage> {
                                         });
                                   } else {
                                     //TODO: send data to the order list in Firestore
-                                    orderName = productList[i].toMap()['name'];
+//                                    orderName = productList[i].toMap()['name'];
+//                                    listOfOrders.add(Order.fromMap({'coffee_name': productList[i].toMap()['name'], 'price': productList[i].toMap()['price']}));
+                                  orderNames.add(productList[index].name);
+                                  orderPrices.add(productList[index].price);
+//                                  orderFlavours.add(flavourSelected);
+                                  orderCupSizes.add(cupSizeSelected);
                                     sendOrderList();
                                     showDialog(
                                         context: context,
@@ -203,8 +216,11 @@ class _MyHomePageState extends State<MyHomePage> {
 List<Product> productList = [];
 
 void getAvailableProducts() async{
+
   final QuerySnapshot result = await Firestore.instance.collection('product').getDocuments();
   List<DocumentSnapshot> documents = result.documents;
+  print('productList.length before filling up: ');
+  print(productList.length);
   if(documents.isNotEmpty){
     documents.forEach((data){
       print('document ID: ');
@@ -215,13 +231,13 @@ void getAvailableProducts() async{
       // object[0] = new Product(). In Dart 1, you would use 'new' keyword as well, but in Dart 2, it isn't required anymore.
       print('element of productlist: ');
     });
+    print('productList.length right after filling up: ');
+    print(productList.length);
     for (Product product in productList){
       print('product info: ');
       print('Look under here: ');
-//      print(productList[0].toMap()['name']);
       print(product.toMap()); //this prints all the values of the variables inside Product class, defined inside toMap()
     }
-
   }
 
 }
