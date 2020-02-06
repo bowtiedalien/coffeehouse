@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:challenge_1/resources/models.dart';
 import 'package:challenge_1/test/model_class.dart';
 import 'package:challenge_1/test/shopping_cart.dart';
@@ -28,8 +27,9 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     getCupSizes();
     getFlavours();
-    print('productList.length before list: ');
-    print(productList.length);
+    //for debugging - checking if productList's length changes - should always be 10
+//    print('productList.length before list: ');
+//    print(productList.length);
     return Scaffold(
       body: Container(
         margin: EdgeInsets.fromLTRB(0, 5, 0, 0),
@@ -144,7 +144,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                         orderFlavours[currentCoffee] = value2;
                                           print(orderFlavours[currentCoffee]);
                                           print(orderFlavours);
-                                          print('productList.length after list: ' + productList.length.toString());
                                         });
                                       },
                                     ),
@@ -172,7 +171,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                   orderPrices.add(productList[index].price);
 //                                  orderFlavours.add(flavourSelected);
                                   orderCupSizes.add(cupSizeSelected);
-                                    sendOrderList();
+                                    print('listOfOrders.length before gatherOrderList: ' + listOfOrders.length.toString());
+                                  gatherOrderList();
+                                  print('listOfOrders.length after gatherOrderList: ' + listOfOrders.length.toString());
+//                                    sendOrderList();
                                     showDialog(
                                         context: context,
                                         builder: (context) {

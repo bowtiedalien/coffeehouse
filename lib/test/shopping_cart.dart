@@ -10,19 +10,21 @@ import 'model_class.dart';
 
 String paymentMethod; //stores the payment method chosen
 Order someOrder;
-List<Order> listOfOrders = []; //this gets sent to Firestore - it has all orders inside it
+List<Order> listOfOrders =
+    []; //this gets sent to Firestore - it has all orders inside it
 
 bool plusClicked = false;
 bool minusClicked = false;
 int _orderQuantity = 1;
-bool orderLoading;
+bool orderLoading = true;
 var _addressController = TextEditingController();
 //String orderName;
 var orderNames = [];
 var orderPrices = [];
 
-String orderDocumentID; //use this to store the document ID where the orders[] is stored, so that we can retrieve that document only not the others and display it in the Shopping Cart
-var orders = <Map<String, dynamic>>[];
+String
+    orderDocumentID; //use this to store the document ID where the orders[] is stored, so that we can retrieve that document only not the others and display it in the Shopping Cart
+//var orders = <Map<String, dynamic>>[];
 
 Widget priceReport(double subt, double shp) {
   return Column(children: <Widget>[
@@ -116,48 +118,48 @@ class MyShoppingCart extends StatefulWidget {
 class _MyShoppingCartState extends State<MyShoppingCart> {
   //TODO: get all documents of all orders from here, and display them all in the ListView. do not call a specific document like this.
   //TODO: add the data you get from Firestore to the array called orders
-  Future getOrderList() async {
-    setState(() {
-      orderLoading = true;
-    });
-
-    final QuerySnapshot allDocs = await Firestore.instance.collection('order')
-        .getDocuments();
-    List<DocumentSnapshot> docs = allDocs.documents;
-    if (docs.isNotEmpty) {
-      docs.forEach((d) {
-        print("printing name and price ..");
-        print(d.data['orders'][0]['coffee_name']);
-        print(d.data['price']);
-        print('length of orders list: ' + '${orders.length}');
-//        orders.add(
-//            {'name': d.data['orders'][0]['name'], 'price': d.data['price']});
-//        for(int i=0; d.data['orders'][i]==null; i++) {
-        int i=0;
-          if(d.data['orders'][i] != null) {
-            orders.insert(i, {
-              'name': d.data['orders'][i]['coffee_name'],
-              'price': d.data['price'],
-            },);
-            i++;
-          }
-
-        //}
-        print('length of orders list: ' + '${orders.length}');
-        setState(() {
-          orderLoading = false;
-          print(orderLoading);
-        });
-      });
-    }
-    else {
-      print('loading');
-    }
-  }
+//  Future getOrderList() async {
+//    setState(() {
+//      orderLoading = true;
+//    });
+//
+//    final QuerySnapshot allDocs = await Firestore.instance.collection('order')
+//        .getDocuments();
+//    List<DocumentSnapshot> docs = allDocs.documents;
+//    if (docs.isNotEmpty) {
+//      docs.forEach((d) {
+//        print("printing name and price ..");
+//        print(d.data['orders'][0]['coffee_name']);
+//        print(d.data['price']);
+//        print('length of orders list: ' + '${orders.length}');
+////        orders.add(
+////            {'name': d.data['orders'][0]['name'], 'price': d.data['price']});
+////        for(int i=0; d.data['orders'][i]==null; i++) {
+//        int i=0;
+//          if(d.data['orders'][i] != null) {
+//            orders.insert(i, {
+//              'name': d.data['orders'][i]['coffee_name'],
+//              'price': d.data['price'],
+//            },);
+//            i++;
+//          }
+//
+//        //}
+//        print('length of orders list: ' + '${orders.length}');
+//        setState(() {
+//          orderLoading = false;
+//          print(orderLoading);
+//        });
+//      });
+//    }
+//    else {
+//      print('loading');
+//    }
+//  }
 
   @override
   void initState() {
-    getOrderList();
+//    getOrderList();
     super.initState();
   }
 
@@ -167,104 +169,97 @@ class _MyShoppingCartState extends State<MyShoppingCart> {
     if (model.orderFinalised)
       return OrderInfoFinalised(_addressController.text, paymentMethod, 10, 2);
     else
-      return orderLoading
-          ? Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
+      return SingleChildScrollView(
+        child: Column(
+          children: <Widget>[
+            Container(
+              padding: EdgeInsets.only(top: 10, left: 10),
+              child: Text('Shopping Cart',
+                  style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
+              alignment: Alignment.topLeft,
+            ),
+            OrderTiles(), //a loop that calls all orders from firebase
+            Divider(),
+            Container(
               child: Column(
                 children: <Widget>[
+                  cardTitle('Shipping Address'),
                   Container(
-                    padding: EdgeInsets.only(top: 10, left: 10),
-                    child: Text('Shopping Cart',
-                        style: TextStyle(
-                            fontSize: 25, fontWeight: FontWeight.bold)),
-                    alignment: Alignment.topLeft,
-                  ),
-                  OrderTiles(), //a loop that calls all orders from firebase
-                  Divider(),
-                  Container(
-                    child: Column(
-                      children: <Widget>[
-                        cardTitle('Shipping Address'),
-                        Container(
-                          padding: EdgeInsets.all(20),
-                          width: 240,
-                          height: 100,
-                          decoration: curvedEdge,
-                          child: TextField(
-                            controller: _addressController,
-                            keyboardType: TextInputType.multiline,
-                            maxLines:
-                                5, //max number of lines the user can enter
-                          ),
-                        ),
-                        cardTitle('Payment Method'),
-                        Container(
-                          decoration: dropDownButtonDecoration,
-                          padding: EdgeInsets.only(left: 7),
-                          margin: EdgeInsets.all(3),
-                          height: 35,
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: paymentMethod,
-                              //the default value of the button
-                              onChanged: (String value) {
-                                setState(() {
-                                  paymentMethod = value;
-                                });
-                              },
-                              //understand this part > we are taking a string array, mapping it to another type, then converting it to a list?
-                              items: <String>[
-                                'Credit Card',
-                                'At the door'
-                              ].map<DropdownMenuItem<String>>((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
-                              hint: Text('choose payment'),
-                            ),
-                          ),
-                        ),
-                        Divider(),
-                        priceReport(10.0, 2.0),
-                        SizedBox(
-                          height: 30,
-                        ),
-                        coffeeButton('Proceed to Checkout', () {
-                          //add verification for payment type and address - user HAS to enter them
-                          if (_addressController.text == null ||
-                              _addressController.text == "" ||
-                              paymentMethod == null) {
-                            print('textfield empty');
-                            showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: Text(
-                                      'You need to enter both an address and a payment method!',
-                                    ),
-                                  );
-                                });
-                          } else {
-                            final model = Provider.of<ShoppingCartModel>(
-                                context,
-                                listen:
-                                    false); //set listen: false when the consumer will only use the methods of the model and will not update.
-//                    sendOrderInfo();
-                            sendOrderList(); //sending again the order list in case the user deleted any of the orders
-                            model.finaliseOrder();
-                          }
-                          setState(() {
-                            //refresh page to make it read-only
-                          });
-                        }),
-                      ],
+                    padding: EdgeInsets.all(20),
+                    width: 240,
+                    height: 100,
+                    decoration: curvedEdge,
+                    child: TextField(
+                      controller: _addressController,
+                      keyboardType: TextInputType.multiline,
+                      maxLines: 5, //max number of lines the user can enter
                     ),
                   ),
+                  cardTitle('Payment Method'),
+                  Container(
+                    decoration: dropDownButtonDecoration,
+                    padding: EdgeInsets.only(left: 7),
+                    margin: EdgeInsets.all(3),
+                    height: 35,
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: paymentMethod,
+                        //the default value of the button
+                        onChanged: (String value) {
+                          setState(() {
+                            paymentMethod = value;
+                          });
+                        },
+                        //understand this part > we are taking a string array, mapping it to another type, then converting it to a list?
+                        items: <String>['Credit Card', 'At the door']
+                            .map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        hint: Text('choose payment'),
+                      ),
+                    ),
+                  ),
+                  Divider(),
+                  priceReport(10.0, 2.0),
+                  SizedBox(
+                    height: 30,
+                  ),
+                  coffeeButton('Proceed to Checkout', () {
+                    //add verification for payment type and address - user HAS to enter them
+                    if (_addressController.text == null ||
+                        _addressController.text == "" ||
+                        paymentMethod == null) {
+                      print('textfield empty');
+                      showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text(
+                                'You need to enter both an address and a payment method!',
+                              ),
+                            );
+                          });
+                    } else {
+                      final model = Provider.of<ShoppingCartModel>(context,
+                          listen:
+                              false); //set listen: false when the consumer will only use the methods of the model and will not update.
+//                    sendOrderInfo();
+                      sendOrderList(); //sending again the order list in case the user deleted any of the orders
+                      model.finaliseOrder();
+                    }
+                    setState(() {
+                      //refresh page to make it read-only
+                    });
+                  }),
                 ],
               ),
-            );
+            ),
+          ],
+        ),
+      );
   }
 }
 
@@ -282,32 +277,33 @@ class _OrderTilesState extends State<OrderTiles> {
       _orderQuantity++;
       setState(() {});
     }
+
     void minus() {
       if (_orderQuantity != 0) _orderQuantity--;
       setState(() {});
     }
 
+    print('listOfOrders.length from OrderTiles: ' + '${listOfOrders.length}');
     return Container(
       padding: EdgeInsets.all(20),
       margin: EdgeInsets.only(left: 20, right: 20),
-      height: 120 * orders.length.toDouble(),
+      height: 120 * listOfOrders.length.toDouble(),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           Expanded(
             child: ListView.builder(
-              itemCount: orders.length,
+              itemCount: listOfOrders.length,
               itemBuilder: (context, int index) {
-                
                 return Dismissible(
-                  key: Key(orders[index].toString()), //I don't know if I'm doing this correctly
+                  key: Key(listOfOrders[index].toString()),
+                  //I don't know if I'm doing this correctly
                   background: Container(
                     color: bgColor,
                   ),
                   onDismissed: (direction) {
                     setState(() {
-                      orders.removeAt(
-                          index);
+                      listOfOrders.removeAt(index);
                     });
                   },
                   child: Row(
@@ -315,7 +311,7 @@ class _OrderTilesState extends State<OrderTiles> {
                       Image(
                         image: AssetImage(
                           coffeeImages[coffeeNames
-                              .indexOf(orders[index]['name'])],
+                              .indexOf(listOfOrders[index].coffeeName)],
                         ),
                         width: 50,
                       ),
@@ -324,8 +320,11 @@ class _OrderTilesState extends State<OrderTiles> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
-                            Text(orders[index]['name']), //TODO: this is index 0 only right now because I still haven't figured out how to add more than one order in the list anyway, so it was always have just one element. Fix it later to be a loop when you figure out how to add more than one order
-                            Text(orders[index]['price'].toString()),
+                            Text(listOfOrders[index].coffeeName),
+                            //TODO: this is index 0 only right now because I still haven't figured out how to add more than one order in the list anyway, so it was always have just one element. Fix it later to be a loop when you figure out how to add more than one order
+                            Text(coffeePrices[coffeeNames
+                                    .indexOf(listOfOrders[index].coffeeName)]
+                                .toString()),
                             Container(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(30),
@@ -469,38 +468,20 @@ class _OrderInfoFinalisedState extends State<OrderInfoFinalised> {
   }
 }
 
-//void sendOrderInfo() {
-//  Firestore.instance
-//      .collection('order')
-//      .document()
-//      .setData({
-//    //TODO: how to dynamically create a subcollection
-//    'address': _addressController.text,
-//    'payment method': paymentMethod,
-//    'order quantity': _orderQuantity,
-//  });
-//}
+void gatherOrderList() {
+  //filling up the listOfOrders list
+  listOfOrders = []; //resetting the array
+  for (int i = 0; i < orderNames.length; i++) {
+    listOfOrders.add(Order.fromMap({
+      'coffee_name': orderNames[i],
+      'flavour': orderFlavours[i],
+      'cup_size': orderCupSizes[i]
+    }));
+  }
+}
 
 void sendOrderList() async {
-  //create a new document in Firestore, add to it the order information (coffee name, cup size, and flavour)
-//  Firestore.instance.collection('order').document().setData({
-//    'orders': [
-//      {
-//        'coffee_name': orderName,
-//        'cup_size': cupSizeSelected,
-//        'flavour': flavourSelected,
-//      },
-//    ],
-//  });
-
-
   print('from inside sendOrderList: ');
-
-  //filling up the listOfOrders list
-  for (int i = 0; i < orderNames.length; i++) {
-    listOfOrders.add(
-        Order.fromMap({'coffee_name': orderNames[i], 'flavour': orderFlavours[i], 'cup_size': orderCupSizes[i]}));
-  }
 
   //converting all items in listOfOrders to map type
   List<Map> ordersAsMaps = [];
@@ -513,18 +494,12 @@ void sendOrderList() async {
   print('printing ordersAsMaps: ');
   print(ordersAsMaps);
 
-//  Test myOrder;
-//  myOrder.toMap();
-//  for(int i=0;i<orderNames.length; i++) {
-//    myOrder.orders.add(Order.fromMap({'coffee_name': orderNames[i], 'price': orderPrices[i]}));
-//  }
-//  print(myOrder);
-//  print('$listOfOrders');
-    DocumentReference docRef = await Firestore.instance.collection('order').document();
-    docRef.setData(
-        {'orders': FieldValue.arrayUnion(ordersAsMaps)});
-    orderDocumentID = docRef.documentID;
-
+  DocumentReference docRef =
+      await Firestore.instance.collection('order').document();
+  docRef.setData({
+    'orders': FieldValue.arrayUnion(ordersAsMaps)
+  }); //upload the whole array to the database
+  orderDocumentID = docRef.documentID;
 }
 
 class ShoppingCartModel with ChangeNotifier {

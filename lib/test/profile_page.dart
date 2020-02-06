@@ -1,5 +1,7 @@
 import 'package:challenge_1/resources/data.dart';
+import 'package:challenge_1/resources/models.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/rendering.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -17,6 +19,7 @@ var _addressController = new TextEditingController();
 var _genderController = new TextEditingController();
 var _phoneController = new TextEditingController();
 var _dobController = new TextEditingController();
+var _LatAndLongController = new TextEditingController();
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -34,7 +37,8 @@ class _ProfilePageState extends State<ProfilePage> {
     } else {
       if (myModel.userIsSignedIn && userID != '' && userID != null) {
         print('if statement entered and userID = ' + '$userID');
-        print('userIsSignedIn from ProfilePage():' + '${myModel.userIsSignedIn}');
+        print(
+            'userIsSignedIn from ProfilePage():' + '${myModel.userIsSignedIn}');
         return MyProfilePage();
       } else
         return SignInSignUp();
@@ -52,21 +56,23 @@ class _MyProfilePageState extends State<MyProfilePage> {
   bool loading = false;
 
   //when profile page info is updated, send new data to firebase
-//  void updateProfileInfo() {
-//    Firestore.instance.collection('users').document(userDocID).updateData({
-//      'FirstName': userName.contains(' ')?(userName).substring(0, userName.toString().indexOf(' ')):userName,
-//      'LastName': userName.contains(' ')?(userName)
-//          .substring(userName.toString().indexOf(' '), userName.length):'',
-//      'address': userAddress,
-//      'birthdate': userBirthdate,
-//      'gender': userGender,
-//      'phone number': userPhone,
-//      'LAT': _currentPosition != null ? _currentPosition.latitude : '',
-//      'LONG':
-//          _currentPosition != null ? _currentPosition.longitude : '',
-//    });
-//    print('printing out the data');
-//  }
+  void updateProfileInfo() {
+    Firestore.instance.collection('users').document(userID).updateData({
+      'FirstName': userName.contains(' ')
+          ? (userName).substring(0, userName.toString().indexOf(' '))
+          : userName,
+      'LastName': userName.contains(' ')
+          ? (userName)
+              .substring(userName.toString().indexOf(' '), userName.length)
+          : '',
+      'address': userAddress,
+      'birthdate': userBirthdate,
+      'gender': userGender,
+      'phone number': userPhone,
+      'LAT': _currentPosition != null ? _currentPosition.latitude : '',
+      'LONG': _currentPosition != null ? _currentPosition.longitude : '',
+    });
+  }
 
   //display "Hello, User!" at the top of screen
   Widget displayName() {
@@ -84,6 +90,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
 
   //get user information from Firebase
   Future getUserInfo() async {
+    final mymodel = Provider.of<MyModel>(context, listen: false);
     setState(() {
       profilePageIsFetched = false;
       loading = true;
@@ -91,11 +98,16 @@ class _MyProfilePageState extends State<MyProfilePage> {
     if (userID == null || userID == '') {
       await fetchUserIDAfterRestart();
     }
+    if (userID == null || userID == '') {
+      //if fetchUserIDAfterRestart returns empty-handed, userID is still null, so sign out.
+      //probs userID is null because it does not exist in the prefs anymore
+      mymodel.signOut();
+    }
     await findUser(
         userID); //await here prevents next line from executing until getUsers returns its value.
     final result =
         await Firestore.instance.collection('users').document(userID).get();
-    print("getUserInfo is accessing document id: " + userID);
+    print("getUserInfo is accessing document id: " + '$userID');
     if (result.exists) {
       if (result.data['FirstName'] != null) {
         print(result.data['FirstName'] + ' ' + result.data['LastName']);
@@ -105,6 +117,8 @@ class _MyProfilePageState extends State<MyProfilePage> {
         userPhone = result.data['phone_number'];
         userImage = result.data['profile_picture'];
         userBirthdate = result.data['birthdate'];
+        locationLAT = result.data['LAT'];
+        locationLONG = result.data['LONG'];
       } else {
         userName = "User 1";
         userAddress = "";
@@ -190,6 +204,28 @@ class _MyProfilePageState extends State<MyProfilePage> {
                     ),
                   ),
                   Divider(),
+                  Row(
+                    children: <Widget>[
+                      Stack(
+                        children: <Widget>[
+                          Container(
+                            width: 120,
+                            child: Image(
+                              image: AssetImage('affogato.png'),
+                            ),
+                          ),
+                          Positioned(
+                            top: 70,
+                            left: 90,
+                            child: FloatingActionButton(
+                              child: Icon(Icons.camera_alt),
+                              onPressed: () {},
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                   //the image and 'edit my profile'
                   editable
                       ? userInfoBoxEditable(
@@ -200,15 +236,69 @@ class _MyProfilePageState extends State<MyProfilePage> {
                           'Address', _addressController, userAddress, 80)
                       : userInfoBox(
                           'Address', userAddress, _addressController, 80),
-                  IconButton(
-                    icon: Icon(Icons.location_on),
-                    onPressed: () {
-                      _getCurrentLocation();
-                    },
+                  editable
+                      ? Row(
+                          children: <Widget>[
+                            Container(
+                              margin: EdgeInsets.only(left: 27),
+                              padding: EdgeInsets.all(5),
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10.0),
+                                border: Border.all(color: Colors.brown[200]),
+                                color: Colors.white,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(.5),
+                                    blurRadius: 5.0, // soften the shadow
+                                    offset: Offset(
+                                      3.0, // Move to right 10  horizontally
+                                      0.0, // Move to bottom 10 Vertically
+                                    ),
+                                  )
+                                ],
+                              ),
+                              height: 40,
+                              width: 250,
+                              child: TextField(
+                                controller: _LatAndLongController,
+                                decoration: InputDecoration(
+                                  hintText: 'undefined coordinates',
+                                  border: InputBorder.none,
+                                ),
+
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.location_on),
+                              onPressed: () {
+                                _getCurrentLocation();
+                                _LatAndLongController.text = '${_currentPosition.latitude}' + ',' + '${_currentPosition.longitude}';
+                              },
+                            ),
+                          ],
+                        )
+                      : Container(
+                    margin: EdgeInsets.only(bottom: 10),
+                    padding: EdgeInsets.all(5),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10.0),
+                      border: Border.all(color: ppBoxColor),
+                    ),
+                    height: 40,
+                    width: 310,
+                    child: Container(
+                      color: Colors.transparent,
+                      child: Text(
+                        _currentPosition != null
+                            ? '-> LAT: ${_currentPosition.latitude}, LNG: ${_currentPosition.longitude} <-'
+                            : 'location undefined',
+                        style: TextStyle(color: Colors.black, fontSize: 15),
+                      ),
+                    ),
                   ),
-                  Text(_currentPosition != null
-                      ? '-> LAT: ${_currentPosition.latitude}, LNG: ${_currentPosition.longitude} <-'
-                      : 'location undefined'),
+
                   editable
                       ? userInfoBoxEditable(
                           'Gender', _genderController, userGender, 40)
@@ -226,56 +316,56 @@ class _MyProfilePageState extends State<MyProfilePage> {
                           'Date of Birth', userBirthdate, _dobController, 40),
                 ],
               ),
-              Container(
-                width: 100,
-                child: OutlineButton(
-                  child: Text('Save'),
-                  onPressed: () {
-                    //1. refresh page to be read-only
-                    editable = false;
+              !editable
+                  ? Container()
+                  : Container(
+                      width: 100,
+                      child: OutlineButton(
+                        child: Text('Save'),
+                        onPressed: () {
+                          //1. refresh page to be read-only
+                          editable = false;
 
-                    //2. send info to firestore
-                    setState(() {
-                      if (_nameController.text == "" ||
-                          _nameController.text == null)
-                        _nameController.text = userName;
-                      else {
-                        userName = _nameController.text;
-                      }
-                      if (_addressController.text == "" ||
-                          _addressController.text == null)
-                        _addressController.text = userAddress;
-                      else {
-                        userAddress = _addressController.text;
-                      }
-                      if (_phoneController.text == "" ||
-                          _phoneController.text == null)
-                        _phoneController.text = userPhone;
-                      else {
-                        userPhone = _phoneController.text;
-                      }
-                      if (_genderController.text == "" ||
-                          _genderController.text == null)
-                        _genderController.text = userGender;
-                      else {
-                        userGender = _genderController.text;
-                      }
-                      if (_dobController.text == "" ||
-                          _dobController.text == null)
-                        _dobController.text = userBirthdate;
-                      else {
-                        userBirthdate = _dobController.text;
-                      }
-                      print('before updating data');
-                      //updateProfileInfo(); //send all information to firebase
-                    });
-                  },
-                ),
-              ),
+                          //2. send info to firestore
+                          setState(() {
+                            if (_nameController.text == "" ||
+                                _nameController.text == null)
+                              _nameController.text = userName;
+                            else {
+                              userName = _nameController.text;
+                            }
+                            if (_addressController.text == "" ||
+                                _addressController.text == null)
+                              _addressController.text = userAddress;
+                            else {
+                              userAddress = _addressController.text;
+                            }
+                            if (_phoneController.text == "" ||
+                                _phoneController.text == null)
+                              _phoneController.text = userPhone;
+                            else {
+                              userPhone = _phoneController.text;
+                            }
+                            if (_genderController.text == "" ||
+                                _genderController.text == null)
+                              _genderController.text = userGender;
+                            else {
+                              userGender = _genderController.text;
+                            }
+                            if (_dobController.text == "" ||
+                                _dobController.text == null)
+                              _dobController.text = userBirthdate;
+                            else {
+                              userBirthdate = _dobController.text;
+                            }
+                            updateProfileInfo(); //send all information to firebase
+                          });
+                        },
+                      ),
+                    ),
               Container(
-                width: 100,
                 color: Colors.red,
-                child: OutlineButton(
+                child: FlatButton(
                   child: Text(
                     'Sign Out',
                     style: TextStyle(color: Colors.white),
@@ -352,24 +442,17 @@ Widget userInfoBox(String label, String info, var cont, int boxHeight) {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: Colors.brown[200]),
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(.5),
-              blurRadius: 5.0, // soften the shadow
-              offset: Offset(
-                3.0, // Move to right 10  horizontally
-                0.0, // Move to bottom 10 Vertically
-              ),
-            )
-          ],
+          border: Border.all(color: ppBoxColor),
+//          color: ppBoxColor,
         ),
         height: boxHeight.toDouble(),
         width: 310,
         child: Container(
-          child:
-              Text((cont.text == null || cont.text == "") ? info : cont.text),
+          color: Colors.transparent,
+          child: Text(
+            (cont.text == null || cont.text == "") ? info : cont.text,
+            style: TextStyle(color: Colors.black, fontSize: 20),
+          ),
         ),
       ),
     ],
