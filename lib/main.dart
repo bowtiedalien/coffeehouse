@@ -6,6 +6,7 @@ import 'resources/models.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'test/sign_in.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
   //WidgetsFlutterBinding.ensureInitialized(); //initialises flutter's framework - need to use if I'm using systemChannels before runApp()
@@ -16,6 +17,22 @@ void main() {
       create: (context) => MyModel(),
       child: MyApp(), //change this back to MyApp()
     ),
+    supportedLocales: [
+      Locale('en', 'US'),
+      Locale('tr', 'TR'),
+    ],
+    localizationsDelegates: [
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+    ],
+    localeResolutionCallback: (locale, supportedLocales){
+      for(var supportedLocale in supportedLocales){
+        if(supportedLocale.languageCode == locale.languageCode && supportedLocale.countryCode == locale.countryCode){
+          return supportedLocale;
+        }
+      }
+      return supportedLocales.first;
+    },
   ));
   SystemChannels.textInput.invokeMethod('TextInput.hide');
 }

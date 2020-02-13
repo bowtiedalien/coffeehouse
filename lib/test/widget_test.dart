@@ -1,7 +1,9 @@
 import 'package:challenge_1/main.dart';
 import 'package:challenge_1/resources/models.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'homepage.dart';
 import 'profile_page.dart';
@@ -59,6 +61,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     final mymodel = Provider.of<MyModel>(context, listen: false);
+    var data = EasyLocalizationProvider.of(context).data;
 
     if(!getAvailableProductsCalled) {
       getAvailableProducts(); //debugging
@@ -69,34 +72,49 @@ class _MyAppState extends State<MyApp> {
         .width; //save screen dimensions in a variable
     double screenHeight = MediaQuery.of(context).size.height;
 
-    return Scaffold(
-      backgroundColor: bgColor,
-      body: Column(
-        children: <Widget>[
-          Container(
-            width: screenWidth - 50,
-            margin: EdgeInsets.fromLTRB(59, 70, 0, 0),
-            child: AnimatedDefaultTextStyle(
-              style: TextStyle(
-                fontSize: 40,
-                fontWeight: homeScreenTitleFontWeight,
-                color: homeScreenTitleColor,
+    return EasyLocalizationProvider(
+      data: data,
+      child: MaterialApp(
+        home: Scaffold(
+          backgroundColor: bgColor,
+          body: Column(
+            children: <Widget>[
+              Container(
+                width: screenWidth - 50,
+                margin: EdgeInsets.fromLTRB(59, 70, 0, 0),
+                child: AnimatedDefaultTextStyle(
+                  style: TextStyle(
+                    fontSize: 40,
+                    fontWeight: homeScreenTitleFontWeight,
+                    color: homeScreenTitleColor,
+                  ),
+                  duration: const Duration(milliseconds: 500),
+                  child: Text(
+                    "Welcome to" + "\nCoffee House",
+                  ),
+                ),
               ),
-              duration: const Duration(milliseconds: 500),
-              child: Text(
-                "Welcome to" + "\nCoffee House",
+              changeState(),
+              Container(
+                margin: EdgeInsets.only(top: screenHeight / 7.2),
+                child: Image.asset(
+                  'coffee.png',
+                  fit: BoxFit.scaleDown,
+                ),
               ),
-            ),
+            ],
           ),
-          changeState(),
-          Container(
-            margin: EdgeInsets.only(top: screenHeight / 7.2),
-            child: Image.asset(
-              'coffee.png',
-              fit: BoxFit.scaleDown,
-            ),
-          ),
+        ),
+        localizationsDelegates: [
+          GlobalWidgetsLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          EasyLocalizationDelegate(
+            locale: data.locale,
+            path: 'lang',
+          )
         ],
+        supportedLocales: [Locale('en'), Locale('tr')],
+        locale: data.savedLocale,
       ),
     );
   }

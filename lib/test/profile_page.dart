@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:challenge_1/resources/data.dart';
 import 'package:challenge_1/resources/models.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'sign_up.dart';
 import 'package:challenge_1/main.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:challenge_1/resources/data.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -20,6 +23,9 @@ var _genderController = new TextEditingController();
 var _phoneController = new TextEditingController();
 var _dobController = new TextEditingController();
 var _LatAndLongController = new TextEditingController();
+File profilePicture;
+String profilePicturePath;
+bool profilePictureFetched = false;
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -27,13 +33,39 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  void getProfileImageFromLastState() async {
+    //What does this function do?
+    //it retrieves the profile picture from Shared Preferences, if it exists, so that user can see it next time he starts the app.
+    //Note: If, after setting the profile pic, the user changes the path of the image, by moving it to another album or whatever, this function will probably not work.
+    //this is because it will try to find the image with the path saved in SharedPreferences, which will have become an invalid path.
+    //so maybe, if you'd like to avoid this problem, consider using other means of storage for the profile picture; for example, Firestore.
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    profilePicturePath = await prefs.getString('profile_picture');
+    setState(() {
+      profilePictureFetched =
+          true; //so as to let the MyProfilePage() stop loading
+    });
+  }
+
+  @override
+  void initState() {
+    //call getProfileImageFromLastState to fetch the profile picture only once; i.e. in the very first call of the build function (after restart or after clicking on the bottom navigation bar).
+    //If I call it inside the build function instead of inside initState, getProfileImageFromLastState is called infinitely.
+    getProfileImageFromLastState();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final myModel = Provider.of<MyModel>(
         context); //this makes the ProfilePage act as a consumer
 
-    if (myModel.signOutLoading) {
-      return CircularProgressIndicator();
+    //call getProfileImageFromLastState to fetch the profile picture only once; i.e. in the very first call of the build function.
+    //Without the if statement, getProfileImageFromLastState is called infinitely.
+//    if (!profilePictureFetched) getProfileImageFromLastState();
+
+    if (myModel.signOutLoading || !profilePictureFetched) {
+      return Center(child: CircularProgressIndicator());
     } else {
       if (myModel.userIsSignedIn && userID != '' && userID != null) {
         print('if statement entered and userID = ' + '$userID');
@@ -54,6 +86,8 @@ class MyProfilePage extends StatefulWidget {
 class _MyProfilePageState extends State<MyProfilePage> {
   Position _currentPosition;
   bool loading = false;
+
+  // File _image = File(profilePicturePath)!=null?File(profilePicturePath):null;
 
   //when profile page info is updated, send new data to firebase
   void updateProfileInfo() {
@@ -160,6 +194,8 @@ class _MyProfilePageState extends State<MyProfilePage> {
   void initState() {
     getUserInfo();
     print('initSatte');
+    profilePicture =
+        File(profilePicturePath); //initialise prof pic after a restart
     super.initState();
   }
 
@@ -208,18 +244,53 @@ class _MyProfilePageState extends State<MyProfilePage> {
                     children: <Widget>[
                       Stack(
                         children: <Widget>[
-                          Container(
-                            width: 120,
-                            child: Image(
-                              image: AssetImage('affogato.png'),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: CircleAvatar(
+                              radius: 70,
+                              backgroundColor: Colors.white,
+                              child: Container(
+                                height: 150,
+                                width: 150,
+                                child: profilePicture != null
+                                    ? ClipOval(
+                                        child: Image.file(
+                                          profilePicture,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      )
+                                    : Center(
+                                        child: Text(
+                                        'No profile picture',
+                                        style: TextStyle(color: Colors.black),
+                                      )),
+                              ),
                             ),
                           ),
-                          Positioned(
-                            top: 70,
-                            left: 90,
-                            child: FloatingActionButton(
-                              child: Icon(Icons.camera_alt),
-                              onPressed: () {},
+                          Padding(
+                            padding: EdgeInsets.only(left: 105, top: 80),
+                            child: Container(
+                              width: 50,
+                              height: 50,
+                              child: FloatingActionButton(
+                                backgroundColor: bgColor,
+                                child: Icon(Icons.camera_alt),
+                                onPressed: () async {
+                                  profilePicture = await ImagePicker.pickImage(
+                                      source: ImageSource.gallery);
+                                  print(profilePicture.path);
+//                                  _image = profilePicture;
+                                  SharedPreferences prefs =
+                                      await SharedPreferences.getInstance();
+                                  await prefs.setString(
+                                      'profile_picture', profilePicture.path);
+                                  print('from prefs:' +
+                                      prefs.getString('profile_picture'));
+                                  setState(() {
+                                    //refresh widget to update profile picture immediately
+                                  });
+                                },
+                              ),
                             ),
                           ),
                         ],
@@ -266,38 +337,41 @@ class _MyProfilePageState extends State<MyProfilePage> {
                                   hintText: 'undefined coordinates',
                                   border: InputBorder.none,
                                 ),
-
                               ),
                             ),
                             IconButton(
                               icon: Icon(Icons.location_on),
                               onPressed: () {
                                 _getCurrentLocation();
-                                _LatAndLongController.text = '${_currentPosition.latitude}' + ',' + '${_currentPosition.longitude}';
+                                _LatAndLongController.text =
+                                    '${_currentPosition.latitude}' +
+                                        ',' +
+                                        '${_currentPosition.longitude}';
                               },
                             ),
                           ],
                         )
                       : Container(
-                    margin: EdgeInsets.only(bottom: 10),
-                    padding: EdgeInsets.all(5),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10.0),
-                      border: Border.all(color: ppBoxColor),
-                    ),
-                    height: 40,
-                    width: 310,
-                    child: Container(
-                      color: Colors.transparent,
-                      child: Text(
-                        _currentPosition != null
-                            ? '-> LAT: ${_currentPosition.latitude}, LNG: ${_currentPosition.longitude} <-'
-                            : 'location undefined',
-                        style: TextStyle(color: Colors.black, fontSize: 15),
-                      ),
-                    ),
-                  ),
+                          margin: EdgeInsets.only(bottom: 10),
+                          padding: EdgeInsets.all(5),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10.0),
+                            border: Border.all(color: ppBoxColor),
+                          ),
+                          height: 40,
+                          width: 310,
+                          child: Container(
+                            color: Colors.transparent,
+                            child: Text(
+                              _currentPosition != null
+                                  ? '-> LAT: ${_currentPosition.latitude}, LNG: ${_currentPosition.longitude} <-'
+                                  : 'location undefined',
+                              style:
+                                  TextStyle(color: Colors.black, fontSize: 15),
+                            ),
+                          ),
+                        ),
 
                   editable
                       ? userInfoBoxEditable(
