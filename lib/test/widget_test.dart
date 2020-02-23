@@ -1,18 +1,15 @@
 import 'package:challenge_1/main.dart';
+import 'package:challenge_1/resources/data.dart';
 import 'package:challenge_1/resources/models.dart';
-import 'package:easy_localization/easy_localization.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_translate/flutter_translate.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'homepage.dart';
 import 'profile_page.dart';
 import 'shopping_cart.dart';
 import 'dart:async';
-import 'package:challenge_1/resources/data.dart';
-import 'homepage.dart';
-
-
 
 bool getAvailableProductsCalled = false;
 
@@ -25,7 +22,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-
   Widget changeState() {
     changestate();
     return Container();
@@ -60,10 +56,11 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    final mymodel = Provider.of<MyModel>(context, listen: false);
-    var data = EasyLocalizationProvider.of(context).data;
+    var localizationDelegate = LocalizedApp.of(context).delegate;
 
-    if(!getAvailableProductsCalled) {
+    final mymodel = Provider.of<MyModel>(context, listen: false);
+
+    if (!getAvailableProductsCalled) {
       getAvailableProducts(); //debugging
       getAvailableProductsCalled = true;
     }
@@ -72,9 +69,16 @@ class _MyAppState extends State<MyApp> {
         .width; //save screen dimensions in a variable
     double screenHeight = MediaQuery.of(context).size.height;
 
-    return EasyLocalizationProvider(
-      data: data,
+    return LocalizationProvider(
+      state: LocalizationProvider.of(context).state,
       child: MaterialApp(
+        localizationsDelegates: [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          localizationDelegate
+        ],
+        supportedLocales: localizationDelegate.supportedLocales,
+        locale: localizationDelegate.currentLocale,
         home: Scaffold(
           backgroundColor: bgColor,
           body: Column(
@@ -105,16 +109,6 @@ class _MyAppState extends State<MyApp> {
             ],
           ),
         ),
-        localizationsDelegates: [
-          GlobalWidgetsLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          EasyLocalizationDelegate(
-            locale: data.locale,
-            path: 'lang',
-          )
-        ],
-        supportedLocales: [Locale('en'), Locale('tr')],
-        locale: data.savedLocale,
       ),
     );
   }
@@ -138,19 +132,47 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    var localizationDelegate = LocalizedApp.of(context).delegate;
+
     return ChangeNotifierProvider(
       create: (context) => MyModel(),
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Coffee House'),
+          title: Text(translate('title')),
+        ),
+        drawer: Drawer(
+          child: ListView(
+            children: <Widget>[
+              UserAccountsDrawerHeader(
+                  accountEmail: Text(userEmail!=null?userEmail:'user@email.com'),
+                  accountName: Text(userName!=null?userName:'User Name'),
+                  currentAccountPicture: profilePicture!=null?Image.file(profilePicture):Image.asset('coffee-avatar.png'),),
+              ListTile(
+                title: Text(
+                  translate('language.selected_message', args: {
+                    'language': translate(
+                        'language.name.${localizationDelegate.currentLocale.languageCode}')
+                  }),
+                  style: TextStyle(fontSize: 18),
+                ),
+                trailing: Icon(
+                  Icons.translate,
+                  color: bgColor,
+                ),
+                onTap: () => _onActionSheetPress(context),
+              ),
+            ],
+          ),
         ),
         body: _pageOptions[_selectedPage],
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _selectedPage,
           onTap: (int index) {
-            setState(() {
-              _selectedPage = index;
-            },);
+            setState(
+              () {
+                _selectedPage = index;
+              },
+            );
           },
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
@@ -166,6 +188,43 @@ class _HomePageState extends State<HomePage> {
               icon: Icon(Icons.person),
             )
           ],
+        ),
+      ),
+    );
+  }
+
+  void showDemoActionSheet({BuildContext context, Widget child}) {
+    showCupertinoModalPopup<String>(
+        context: context,
+        builder: (BuildContext context) => child).then((String value) {
+      changeLocale(context, value);
+    });
+  }
+
+  void _onActionSheetPress(BuildContext context) {
+    showDemoActionSheet(
+      context: context,
+      child: CupertinoActionSheet(
+        title: Text(translate('language.selection.title')),
+        message: Text(translate('language.selection.message')),
+        actions: <Widget>[
+          CupertinoActionSheetAction(
+            child: Text(translate('language.name.en')),
+            onPressed: () => Navigator.pop(context, 'en_US'),
+          ),
+          CupertinoActionSheetAction(
+            child: Text(translate('language.name.tr')),
+            onPressed: () => Navigator.pop(context, 'tr'),
+          ),
+          CupertinoActionSheetAction(
+            child: Text(translate('language.name.ar')),
+            onPressed: () => Navigator.pop(context, 'ar'),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          child: Text(translate('button.cancel')),
+          isDefaultAction: true,
+          onPressed: () => Navigator.pop(context, null),
         ),
       ),
     );

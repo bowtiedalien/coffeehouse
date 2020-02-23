@@ -1,3 +1,4 @@
+import 'package:flutter_translate/flutter_translate.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -5,34 +6,22 @@ import 'test/widget_test.dart';
 import 'resources/models.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'test/sign_in.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 
-void main() {
+void main() async {
+  var delegate = await LocalizationDelegate.create(
+      fallbackLocale: 'en_US', supportedLocales: ['en_US', 'tr-TR']);
+
   //WidgetsFlutterBinding.ensureInitialized(); //initialises flutter's framework - need to use if I'm using systemChannels before runApp()
-  runApp(MaterialApp(
-    theme: ThemeData(primaryColor: bgColor),
-    debugShowCheckedModeBanner: false,
-    home: ChangeNotifierProvider<MyModel>(
-      create: (context) => MyModel(),
-      child: MyApp(), //change this back to MyApp()
+  runApp(LocalizedApp(
+    delegate,
+    MaterialApp(
+      theme: ThemeData(primaryColor: bgColor),
+      debugShowCheckedModeBanner: false,
+      home: ChangeNotifierProvider<MyModel>(
+        create: (context) => MyModel(),
+        child: LocalizedApp(delegate, MyApp()), //change this back to MyApp()
+      ),
     ),
-    supportedLocales: [
-      Locale('en', 'US'),
-      Locale('tr', 'TR'),
-    ],
-    localizationsDelegates: [
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-    ],
-    localeResolutionCallback: (locale, supportedLocales){
-      for(var supportedLocale in supportedLocales){
-        if(supportedLocale.languageCode == locale.languageCode && supportedLocale.countryCode == locale.countryCode){
-          return supportedLocale;
-        }
-      }
-      return supportedLocales.first;
-    },
   ));
   SystemChannels.textInput.invokeMethod('TextInput.hide');
 }
@@ -43,6 +32,7 @@ class MyModel with ChangeNotifier {
       null; //if the currentUser is not null, set userIsSignedIn to true
 
   bool signOutLoading = false;
+
   void printFoo() async {
     print('from MyModel: is user signed in? ' + '$_userIsSignedIn');
     print('currentUser:' + '${await FirebaseAuth.instance.currentUser()}');
@@ -62,7 +52,6 @@ class MyModel with ChangeNotifier {
   bool userHasAccount = false;
 
   void signOut() async {
-
     SharedPreferences pref = await SharedPreferences.getInstance();
 //    pref.setString('userID', ''); //discarding the value of userID
     pref.remove('userID');

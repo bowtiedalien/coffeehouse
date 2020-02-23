@@ -125,6 +125,7 @@ class _SignInState extends State<SignIn> {
             .user;
         userID = user.uid; //save User Id in a var
         if(userID!=null){
+          userEmail = _email;
           mymodel.userIsSignedIn = true;
           await saveUserID();
         }

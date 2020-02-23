@@ -1,0 +1,19 @@
+{
+  "button": {
+    "cancel": "إلغاء",
+    "change_language": "تغيير اللغة"
+  },
+  "language": {
+    "name": {
+      "en": "إنجليزي",
+      "tr": "تركي",
+      "ar": "عربي"
+    },
+    "selected_message": "{language} :اللغة",
+    "selection": {
+      "message": "اختر لغة من القائمة",
+      "title": "اختيار اللغة"
+    }
+  },
+  "title": "بيت القهوة"
+}

@@ -2,12 +2,9 @@ import 'dart:convert';
 import 'package:challenge_1/resources/models.dart';
 import 'package:challenge_1/test/model_class.dart';
 import 'package:challenge_1/test/shopping_cart.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:challenge_1/resources/data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 final db = Firestore.instance;
 

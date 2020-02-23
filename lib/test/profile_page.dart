@@ -12,8 +12,6 @@ import 'sign_up.dart';
 import 'package:challenge_1/main.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:challenge_1/resources/data.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 bool editable =
     true; //this decides weather info appears as readonly or editable text fields
@@ -62,7 +60,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     //call getProfileImageFromLastState to fetch the profile picture only once; i.e. in the very first call of the build function.
     //Without the if statement, getProfileImageFromLastState is called infinitely.
-//    if (!profilePictureFetched) getProfileImageFromLastState();
+    //if (!profilePictureFetched) getProfileImageFromLastState();
 
     if (myModel.signOutLoading || !profilePictureFetched) {
       return Center(child: CircularProgressIndicator());
@@ -87,7 +85,6 @@ class _MyProfilePageState extends State<MyProfilePage> {
   Position _currentPosition;
   bool loading = false;
 
-  // File _image = File(profilePicturePath)!=null?File(profilePicturePath):null;
 
   //when profile page info is updated, send new data to firebase
   void updateProfileInfo() {
@@ -195,7 +192,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
     getUserInfo();
     print('initSatte');
     profilePicture =
-        File(profilePicturePath); //initialise prof pic after a restart
+        profilePicturePath!=null?File(profilePicturePath):null; //initialise prof pic after a restart (why am I using the ternary operator? because if the app is uninstalled, profilePicturePath becomes null. In that case, we initialise the profilePicture as null)
     super.initState();
   }
 

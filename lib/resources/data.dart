@@ -36,7 +36,7 @@ String userPhone;
 String userGender;
 String userAddress;
 String userBirthdate;
-String userEmail = 'sarahxd62@yahoo.com';
+String userEmail; //= 'sarahxd62@yahoo.com';
 double locationLAT;
 double locationLONG;
 

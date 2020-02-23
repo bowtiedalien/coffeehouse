@@ -1,0 +1,19 @@
+{
+  "button": {
+    "cancel": "vazgeç",
+    "change_language": "Dili değiştir"
+  },
+  "language": {
+    "name": {
+      "en": "Inglizce",
+      "tr": "Türkçe",
+      "ar": "Arapça"
+    },
+    "selected_message": "Dil: {language}",
+    "selection": {
+      "message": "Please select a language from the list",
+      "title": "Dil seçimi"
+    }
+  },
+  "title": "Kahve Evi"
+}

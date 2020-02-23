@@ -1,0 +1,56 @@
+{
+  "button": {
+    "cancel": "Cancel",
+    "change_language": "Change Language"
+  },
+  "language": {
+    "name": {
+      "en": "English",
+      "tr": "Turkish",
+      "ar": "Arabic"
+    },
+    "selected_message": "Language: {language}",
+    "selection": {
+      "message": "Please select a language from the list",
+      "title": "Language Selection"
+    }
+  },
+  "title": "Coffee House",
+  "shopping_cart_sections": {
+    "0": "Shopping Cart",
+    "1": "Shipping Address",
+    "2": "Payment Method",
+    "3": "Cart subtotal",
+    "4": "Shipping",
+    "5": "Total"
+  },
+  "payment_options": {
+    "1": "Credit Card",
+    "2": "At the door"
+  },
+  "cup_sizes": {
+    "0": "small",
+    "1": "normal",
+    "2": "huge"
+  },
+  "flavours": {
+    "0": "chocolate",
+    "1": "vanilla"
+  },
+  "buttons": {
+    "0": "Add to Shopping Cart",
+    "1": "Proceed to Checkout",
+    "2": "Edit Profile",
+    "3": "Save",
+    "4": "Sign Out"
+  },
+  "profile_page_sections": {
+    "0": "Hello, $username",
+    "1": "Name",
+    "2": "Address",
+    "3": "Gender",
+    "4": "Phone Number",
+    "5": "Date of Birth"
+  },
+  "_comment": "I want to add the coffee names to the translation files, but if I do I will lose the ability to get them live from Firebase. How can I get them translated and get them live in the same time."
+}
